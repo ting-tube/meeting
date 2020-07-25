@@ -1,9 +1,9 @@
 {
-  "name": "peer-calls",
+  "name": "@ting/meeting",
   "version": "4.0.0-alpha.0",
   "private": true,
   "description": "Group peer to peer video calls for anybody.",
-  "repository": "https://github.com/peer-calls/peer-calls",
+  "repository": "https://github.com/ting-tube/meeting",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "bin": {

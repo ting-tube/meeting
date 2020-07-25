@@ -176,8 +176,8 @@ describe('components/Toolbar', () => {
       expect(copyUrl).toBeDefined()
       TestUtils.Simulate.click(copyUrl)
       expect(await p).toEqual({
-        title: 'Peer Call',
-        text: 'john has invited you to a meeting on Peer Calls',
+        title: 'MeeTiNG',
+        text: 'john has invited you to a meeting on MeeTiNG',
         url: jasmine.stringMatching(/^http/),
       })
     })
