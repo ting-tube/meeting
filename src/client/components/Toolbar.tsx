@@ -90,10 +90,10 @@ export default class Toolbar extends React.PureComponent<
   copyInvitationURL = async () => {
     const { nickname } = this.props
     const link = location.href
-    const text = `${nickname} has invited you to a meeting on Peer Calls`
+    const text = `${nickname} has invited you to a meeting on MeeTiNG`
     if (canShare(navigator)) {
       await navigator.share({
-        title: 'Peer Call',
+        title: 'MeeTiNG',
         text,
         url: link,
       })
