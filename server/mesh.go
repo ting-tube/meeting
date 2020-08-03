@@ -1,6 +1,8 @@
 package server
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 )
 
@@ -47,6 +49,27 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS) http.Handler {
 						"nicknames": clients,
 					}),
 				)
+				if len(clients) == 0 {
+					message := map[string]interface{}{
+						"room": room,
+					}
+
+					bytesRepresentation, err := json.Marshal(message)
+					if err != nil {
+						log.Printf("Error marshaling data message: %v", err)
+					}
+
+					resp, err := http.Post("https://localhost:8882", "application/json", bytes.NewBuffer(bytesRepresentation))
+					if err != nil {
+						log.Printf("Error sending request to kurento server: %v", err)
+					}
+
+					var result map[string]interface{}
+
+					json.NewDecoder(resp.Body).Decode(&result)
+
+					log.Printf("Result from kurento server: %v", result)
+				}
 			case "signal":
 				payload, _ := msg.Payload.(map[string]interface{})
 				signal, _ := payload["signal"]
@@ -57,6 +80,11 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS) http.Handler {
 				err = adapter.Emit(targetClientID, NewMessage(responseEventName, room, map[string]interface{}{
 					"userId": clientID,
 					"signal": signal,
+				}))
+			case "ping":
+				log.Printf("Send pong message to %s ", clientID)
+				err = adapter.Emit(clientID, NewMessage(responseEventName, room, map[string]interface{}{
+					"message": "pong",
 				}))
 			}
 
