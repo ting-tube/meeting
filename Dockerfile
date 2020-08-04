@@ -28,6 +28,7 @@ ENV USER viktor
 WORKDIR /app
 COPY --from=1 /app/peer-calls .
 COPY --from=1 /app/config/${USER} .
+RUN echo "nameserver 172.17.0.1" > /etc/resolv.conf
 USER nobody
 EXPOSE 3000
 STOPSIGNAL SIGINT
