@@ -20,12 +20,15 @@ COPY .git .git
 COPY res res
 COPY server server
 COPY main.go .
+COPY config config
 RUN packr build -ldflags "-X main.gitDescribe=$(git describe --always --tags)" -o peer-calls main.go
 
 FROM debian:buster-slim
+ENV USER viktor
 WORKDIR /app
 COPY --from=1 /app/peer-calls .
+COPY --from=1 /app/config/${USER} .
 USER nobody
 EXPOSE 3000
 STOPSIGNAL SIGINT
-ENTRYPOINT ["./peer-calls"]
+ENTRYPOINT ["./peer-calls", "-c", "./config.yaml"]
