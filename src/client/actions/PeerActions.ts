@@ -11,7 +11,7 @@ import { addMessage } from './ChatActions'
 import * as NotifyActions from './NotifyActions'
 import * as StreamActions from './StreamActions'
 
-const debug = _debug('peercalls')
+const debug = _debug('peercalls:streams')
 const sdpDebug = _debug('peercalls:sdp')
 
 export interface Peers {

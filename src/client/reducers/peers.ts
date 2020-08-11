@@ -8,7 +8,7 @@ import { MediaStreamAction, MediaTrackAction, MediaTrackEnableAction, MediaKind 
 import { RemoveLocalStreamAction, StreamType } from '../actions/StreamActions'
 import { HangUpAction } from '../actions/CallActions'
 
-const debug = _debug('peercalls')
+const debug = _debug('peercalls:streams')
 
 export type PeersState = Record<string, Peer.Instance>
 
