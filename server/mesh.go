@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"crypto/tls"
 )
 
 type ReadyMessage struct {
@@ -59,7 +60,8 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS) http.Handler {
 						log.Printf("Error marshaling data message: %v", err)
 					}
 
-					resp, err := http.Post("https://localhost:8882/room", "application/json", bytes.NewBuffer(bytesRepresentation))
+          http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+					resp, err := http.Post("http://localhost:8882/room", "application/json", bytes.NewBuffer(bytesRepresentation))
 					if err != nil {
 						log.Printf("Error sending request to kurento server: %v", err)
 					}
