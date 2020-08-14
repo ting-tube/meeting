@@ -80,7 +80,7 @@ export default class Video extends React.PureComponent<VideoProps> {
       <div className={className}>
         <video
           id={`video-${userId}`}
-          preload="none"
+          playsInline
           onClick={this.handleClick}
           onLoadedMetadata={this.play}
           ref={this.videoRef}
