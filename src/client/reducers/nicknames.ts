@@ -1,6 +1,6 @@
-import { NICKNAMES_SET, PEER_REMOVE, ME, HANG_UP, NICKNAME_REMOVE } from '../constants'
+import { NICKNAMES_SET, PEER_REMOVE, ME, HANG_UP, NICKNAME_REMOVE, ADD_CREATOR_ID } from '../constants'
 import { NicknameActions, NicknameRemoveAction } from '../actions/NicknameActions'
-import { RemovePeerAction } from '../actions/PeerActions'
+import { RemovePeerAction, AddCreatorIdAction } from '../actions/PeerActions'
 import { nickname, userId } from '../window'
 import omit from 'lodash/omit'
 import { HangUpAction } from '../actions/CallActions'
@@ -31,11 +31,13 @@ function removeNickname(
 
 export default function nicknames(
   state = defaultState,
-  action: NicknameActions | RemovePeerAction | HangUpAction,
+  action: NicknameActions | RemovePeerAction | HangUpAction | AddCreatorIdAction,
 ) {
   switch (action.type) {
     case PEER_REMOVE:
       return omit(state, [action.payload.userId])
+    case ADD_CREATOR_ID:
+      return omit(state, [action.payload.creatorId])
     case HANG_UP:
       return {[ME]: state[ME]}
     case NICKNAME_REMOVE:

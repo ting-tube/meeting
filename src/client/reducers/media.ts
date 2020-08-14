@@ -1,6 +1,6 @@
-import { ConnectedAction, DialAction, DisconnectedAction, HangUpAction } from '../actions/CallActions'
+import { ConnectedAction, DialAction, DisconnectedAction, HangUpAction, RecordAction } from '../actions/CallActions'
 import { AudioConstraint, MediaAction, MediaDevice, MediaEnumerateAction, MediaPlayAction, MediaStreamAction, VideoConstraint } from '../actions/MediaActions'
-import { DIAL, DialState, DIAL_STATE_DIALLING, DIAL_STATE_HUNG_UP, DIAL_STATE_IN_CALL, HANG_UP, MEDIA_AUDIO_CONSTRAINT_SET, MEDIA_ENUMERATE, MEDIA_PLAY, MEDIA_STREAM, MEDIA_VIDEO_CONSTRAINT_SET, SOCKET_CONNECTED, SOCKET_DISCONNECTED } from '../constants'
+import { DIAL, DialState, DIAL_STATE_DIALLING, DIAL_STATE_HUNG_UP, DIAL_STATE_IN_CALL, HANG_UP, MEDIA_AUDIO_CONSTRAINT_SET, MEDIA_ENUMERATE, MEDIA_PLAY, MEDIA_STREAM, MEDIA_VIDEO_CONSTRAINT_SET, SOCKET_CONNECTED, SOCKET_DISCONNECTED, CALL_RECORD } from '../constants'
 
 export interface MediaState {
   socketConnected: boolean
@@ -11,6 +11,7 @@ export interface MediaState {
   loading: boolean
   error: string
   autoplayError: boolean
+  recordStatus: boolean
 }
 
 const defaultState: MediaState = {
@@ -22,6 +23,7 @@ const defaultState: MediaState = {
   loading: false,
   error: '',
   autoplayError: false,
+  recordStatus : false,
 }
 
 export function handleEnumerate(
@@ -122,7 +124,8 @@ export default function media(
     DialAction |
     HangUpAction |
     ConnectedAction |
-    DisconnectedAction,
+    DisconnectedAction |
+    RecordAction,
 ): MediaState {
   switch (action.type) {
     case MEDIA_ENUMERATE:
@@ -141,6 +144,11 @@ export default function media(
       return handleMediaStream(state, action)
     case MEDIA_PLAY:
       return handlePlay(state, action)
+    case CALL_RECORD: 
+      return {
+        ...state,
+        recordStatus: action.payload.recordStatus
+      }
     case DIAL:
       return handleDial(state, action)
     case SOCKET_CONNECTED:

@@ -18,6 +18,7 @@ export interface SocketHandlerOptions {
   dispatch: Dispatch
   getState: GetState
   userId: string
+  nickname: string
 }
 
 class SocketHandler {
@@ -27,6 +28,7 @@ class SocketHandler {
   dispatch: Dispatch
   getState: GetState
   userId: string
+  nickname: string
 
   constructor (options: SocketHandlerOptions) {
     this.socket = options.socket
@@ -35,7 +37,14 @@ class SocketHandler {
     this.dispatch = options.dispatch
     this.getState = options.getState
     this.userId = options.userId
+    this.nickname = options.nickname
   }
+
+  handleRoomCreated = ({ creatorId }: SocketEvent['room_created']) => {
+    const { dispatch } = this
+    dispatch(PeerActions.addCreatorId(creatorId))
+    this.readyEmmiter()
+  } 
   handleSignal = ({ userId, signal }: SocketEvent['signal']) => {
     const { getState } = this
     const peer = getState().peers[userId]
@@ -79,6 +88,13 @@ class SocketHandler {
       stream,
     })(dispatch, getState))
   }
+  readyEmmiter() {
+    this.socket.emit(constants.SOCKET_EVENT_READY, {
+      room: this.roomName,
+      nickname: this.nickname,
+      userId: this.nickname,
+    })
+  }
 }
 
 export interface HandshakeOptions {
@@ -100,12 +116,14 @@ export function handshake (options: HandshakeOptions) {
     dispatch: store.dispatch,
     getState: store.getState,
     userId,
+    nickname
   })
 
   // remove listeneres to make socket reusable
   removeEventListeners(socket)
 
   socket.on(constants.SOCKET_EVENT_METADATA, handler.handleMetadata)
+  socket.on(constants.SOCKET_EVENT_ROOM_CREATED, handler.handleRoomCreated)
   socket.on(constants.SOCKET_EVENT_SIGNAL, handler.handleSignal)
   socket.on(constants.SOCKET_EVENT_USERS, handler.handleUsers)
   socket.on(constants.SOCKET_EVENT_HANG_UP, handler.handleHangUp)
@@ -113,8 +131,8 @@ export function handshake (options: HandshakeOptions) {
   debug('userId: %s', userId)
   socket.emit(constants.SOCKET_EVENT_READY, {
     room: roomName,
-    nickname,
-    userId,
+    nickname: nickname,
+    userId: nickname,
   })
 }
 
