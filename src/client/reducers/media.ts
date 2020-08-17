@@ -1,9 +1,11 @@
 import { ConnectedAction, DialAction, DisconnectedAction, HangUpAction, RecordAction } from '../actions/CallActions'
 import { AudioConstraint, MediaAction, MediaDevice, MediaEnumerateAction, MediaPlayAction, MediaStreamAction, VideoConstraint } from '../actions/MediaActions'
-import { DIAL, DialState, DIAL_STATE_DIALLING, DIAL_STATE_HUNG_UP, DIAL_STATE_IN_CALL, HANG_UP, MEDIA_AUDIO_CONSTRAINT_SET, MEDIA_ENUMERATE, MEDIA_PLAY, MEDIA_STREAM, MEDIA_VIDEO_CONSTRAINT_SET, SOCKET_CONNECTED, SOCKET_DISCONNECTED, CALL_RECORD } from '../constants'
+import { DIAL, DialState, DIAL_STATE_DIALLING, DIAL_STATE_HUNG_UP, DIAL_STATE_IN_CALL, HANG_UP, MEDIA_AUDIO_CONSTRAINT_SET, MEDIA_ENUMERATE, MEDIA_PLAY, MEDIA_STREAM, MEDIA_VIDEO_CONSTRAINT_SET, SOCKET_CONNECTED, SOCKET_DISCONNECTED, CALL_RECORD, CREATOR_ID_ADD } from '../constants'
+import { AddCreatorIdAction } from '../actions/PeerActions'
 
 export interface MediaState {
   socketConnected: boolean
+  creatorId: string
   devices: MediaDevice[]
   video: VideoConstraint
   audio: AudioConstraint
@@ -16,6 +18,7 @@ export interface MediaState {
 
 const defaultState: MediaState = {
   socketConnected: false,
+  creatorId: '',
   devices: [],
   video: { facingMode: 'user'},
   audio: true,
@@ -125,7 +128,8 @@ export default function media(
     HangUpAction |
     ConnectedAction |
     DisconnectedAction |
-    RecordAction,
+    RecordAction |
+    AddCreatorIdAction,
 ): MediaState {
   switch (action.type) {
     case MEDIA_ENUMERATE:
@@ -151,6 +155,11 @@ export default function media(
       }
     case DIAL:
       return handleDial(state, action)
+      case CREATOR_ID_ADD:
+        return {
+          ...state, 
+          creatorId: action.payload.creatorId
+        }
     case SOCKET_CONNECTED:
       return {
         ...state,

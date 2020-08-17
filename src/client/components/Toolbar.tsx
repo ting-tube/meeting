@@ -17,7 +17,7 @@ export interface ToolbarProps {
   desktopStream: LocalStream | undefined
   recordStatus: boolean
   onToggleChat: () => void
-  onToggleRecord: (recordStatus: boolean) => void
+  onToggleRecord: () => void
   onGetDesktopStream: typeof getDesktopStream
   onRemoveLocalStream: typeof removeLocalStream
   onHangup: () => void
@@ -119,7 +119,14 @@ export default class Toolbar extends React.PureComponent<
     }
   }
   render() {
-    const { messagesCount, recordStatus, onToggleRecord } = this.props
+    const {
+      messagesCount,
+      recordStatus,
+      onToggleRecord,
+      onHangup,
+      chatVisible,
+      desktopStream
+    } = this.props
     const unreadCount = messagesCount - this.state.readMessages
     const hasUnread = unreadCount > 0
     const isInCall = this.props.dialState === DIAL_STATE_IN_CALL
@@ -144,9 +151,9 @@ export default class Toolbar extends React.PureComponent<
               className='chat'
               key='chat'
               icon={MdQuestionAnswer}
-              blink={!this.props.chatVisible && hasUnread}
+              blink={!chatVisible && hasUnread}
               onClick={this.handleToggleChat}
-              on={this.props.chatVisible}
+              on={chatVisible}
               title='Toggle Chat'
             />
           )}
@@ -159,7 +166,7 @@ export default class Toolbar extends React.PureComponent<
               icon={MdStopScreenShare}
               offIcon={MdScreenShare}
               onClick={this.handleToggleShareDesktop}
-              on={!!this.props.desktopStream}
+              on={!!desktopStream}
               key='stream-desktop'
               title='Share Desktop'
             />
@@ -170,14 +177,14 @@ export default class Toolbar extends React.PureComponent<
               className='recording'
               icon={MdRadioButtonUnchecked}
               offIcon={MdRadioButtonChecked}
-              onClick={() => onToggleRecord(!recordStatus)}
-              on={!!recordStatus}
+              onClick={onToggleRecord}
+              on={recordStatus}
               key='recording'
               title='Start Recording'
             />
 
             <ToolbarButton
-              onClick={this.props.onHangup}
+              onClick={onHangup}
               key='hangup'
               className='hangup'
               icon={MdCallEnd}

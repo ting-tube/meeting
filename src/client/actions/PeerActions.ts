@@ -203,7 +203,7 @@ export interface AddPeerAction {
 }
 
 export interface AddCreatorIdAction {
-  type: 'ADD_CREATOR_ID',
+  type: 'CREATOR_ID_ADD',
   payload: CreatorIdPayload
 }
 
@@ -224,7 +224,7 @@ export const removePeer = (userId: string): RemovePeerAction => ({
 })
 
 export const addCreatorId = (creatorId: string): AddCreatorIdAction => ({
-  type: constants.ADD_CREATOR_ID,
+  type: constants.CREATOR_ID_ADD,
   payload: { creatorId },
 })
 

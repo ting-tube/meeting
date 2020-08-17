@@ -129,6 +129,8 @@ export function handshake (options: HandshakeOptions) {
   socket.on(constants.SOCKET_EVENT_HANG_UP, handler.handleHangUp)
 
   debug('userId: %s', userId)
+
+  // ?remove
   socket.emit(constants.SOCKET_EVENT_READY, {
     room: roomName,
     nickname: nickname,

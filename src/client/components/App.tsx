@@ -36,17 +36,16 @@ export interface AppProps {
   minimizeToggle: (payload: MinimizeTogglePayload) => void
   hangUp: typeof hangUp
   recordAction: typeof recordAction
+  recordStatus: boolean
 }
 
 export interface AppState {
-  chatVisible: boolean,
-  recordStatus: boolean
+  chatVisible: boolean
 }
 
 export default class App extends React.PureComponent<AppProps, AppState> {
   state: AppState = {
-    chatVisible: false,
-    recordStatus: false,
+    chatVisible: false
   }
   handleShowChat = () => {
     this.setState({
@@ -63,11 +62,9 @@ export default class App extends React.PureComponent<AppProps, AppState> {
       ? this.handleHideChat()
       : this.handleShowChat()
   }
-  handleToggleRecord = (recordStatus: boolean): void => {
-    this.setState({
-      recordStatus,
-    })
-    this.props.recordAction(recordStatus)
+  handleToggleRecord = (): void => {
+    const { recordStatus } = this.props
+    this.props.recordAction(!recordStatus)
   }
   componentDidMount () {
     const { init } = this.props
@@ -89,9 +86,10 @@ export default class App extends React.PureComponent<AppProps, AppState> {
       messagesCount,
       sendFile,
       sendText,
+      recordStatus,
     } = this.props
 
-    const { recordStatus, chatVisible } = this.state
+    const { chatVisible } = this.state
 
     const chatVisibleClassName = classnames({
       'chat-visible': chatVisible,
