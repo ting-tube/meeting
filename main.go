@@ -26,6 +26,8 @@ func configure(loggerFactory *logger.Factory, args []string) (net.Listener, *ser
 	if configFilename != "" {
 		configFiles = append(configFiles, configFilename)
 	}
+
+	log.Printf("Using config files: %+v", configFiles)
 	c, err := server.ReadConfig(configFiles)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error reading config: %w", err)

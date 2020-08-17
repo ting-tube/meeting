@@ -44,7 +44,9 @@ func InitConfig(c *Config) {
 
 func ReadConfig(filenames []string) (c Config, err error) {
 	InitConfig(&c)
+	log.Printf("After init config: %+v", c)
 	err = ReadConfigFiles(filenames, &c)
+	log.Printf("After read config files : %+v", c)
 	ReadConfigFromEnv("PEERCALLS_", &c)
 	return c, err
 }
