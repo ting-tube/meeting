@@ -99,7 +99,7 @@ func NewRoomPeersManager(loggerFactory LoggerFactory, jitterHandler JitterHandle
 func (t *RoomPeersManager) addTrack(clientID string, track TrackInfo) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-
+	t.log.Printf("Add track (roomPeersManager) - clientID %s - track info %+v", clientID, track)
 	t.clientIDBySSRC[track.SSRC] = clientID
 
 	for otherClientID, otherTransport := range t.transports {
@@ -115,7 +115,7 @@ func (t *RoomPeersManager) addTrack(clientID string, track TrackInfo) {
 func (t *RoomPeersManager) broadcast(clientID string, msg webrtc.DataChannelMessage) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-
+	t.log.Printf("Broadcast (roomPeersManager) - clientID %s", clientID)
 	for otherClientID, otherPeerInRoom := range t.transports {
 		if otherClientID != clientID {
 			t.log.Printf("[%s] broadcast from %s", otherClientID, clientID)
@@ -147,6 +147,10 @@ func (t *RoomPeersManager) getTransportBySSRC(ssrc uint32) (transport *WebRTCTra
 }
 
 func (t *RoomPeersManager) Add(transport *WebRTCTransport) {
+	if transport != nil {
+		t.log.Printf("Add method (roomPeersManager) - clientID %s", transport.clientID)
+	}
+
 	go func() {
 		for trackEvent := range transport.TrackEventsChannel() {
 			switch trackEvent.Type {

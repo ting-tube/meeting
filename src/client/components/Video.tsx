@@ -26,12 +26,15 @@ export default class Video extends React.PureComponent<VideoProps> {
     mirrored: false,
   }
   handleClick: ReactEventHandler<HTMLVideoElement> = e => {
-    this.props.play()
+    this.play()
   }
   componentDidMount () {
-    this.componentDidUpdate()
+    this.setVideoMetaData()
   }
   componentDidUpdate () {
+    this.setVideoMetaData()
+  }
+  setVideoMetaData () {
     const { stream } = this.props
     const video = this.videoRef.current
     if (video) {
@@ -46,6 +49,12 @@ export default class Video extends React.PureComponent<VideoProps> {
       }
       video.muted = this.props.muted
     }
+  }
+  play = () => {
+    const { stream } = this.props
+
+    if(stream && stream.stream)
+      this.props.play()
   }
   handleMinimize = () => {
     this.props.onMinimizeToggle({
@@ -71,10 +80,9 @@ export default class Video extends React.PureComponent<VideoProps> {
       <div className={className}>
         <video
           id={`video-${userId}`}
-          autoPlay
-          onClick={this.handleClick}
-          onLoadedMetadata={() => this.props.play()}
           playsInline
+          onClick={this.handleClick}
+          onLoadedMetadata={this.play}
           ref={this.videoRef}
         />
         <div className='video-footer'>

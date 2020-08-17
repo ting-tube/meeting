@@ -24,18 +24,23 @@ const getUserMediaFail = (
     'are using an old browser, or the application is not using HTTPS'))
 }
 
-export const enumerateDevices = makeAction(MEDIA_ENUMERATE, async () => {
+const getStream = async () => {
   let stream: MediaStream
   try {
     stream = await getUserMedia({ audio: true, video: true })
   } catch (err) {
     stream = new MediaStream()
   }
+  return stream
+}
+
+export const enumerateDevices = makeAction(MEDIA_ENUMERATE, async () => {
 
   let devices: MediaDeviceInfo[]
   try {
     devices = await navigator.mediaDevices.enumerateDevices()
   } finally {
+    const stream = await getStream()
     stream.getTracks().forEach(track => track.stop())
   }
 
@@ -47,7 +52,6 @@ export const enumerateDevices = makeAction(MEDIA_ENUMERATE, async () => {
     type: device.kind,
     name: device.label,
   }) as MediaDevice)
-
 })
 
 export type FacingMode = 'user' | 'environment'

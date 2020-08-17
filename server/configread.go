@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -35,9 +36,9 @@ func InitConfig(c *Config) {
 	c.Network.Type = NetworkTypeMesh
 	c.Store.Type = StoreTypeMemory
 	c.ICEServers = []ICEServer{{
-		URLs: []string{"stun:stun.l.google.com:19302"},
-	}, {
-		URLs: []string{"stun:global.stun.twilio.com:3478?transport=udp"},
+		//URLs: []string{"stun:stun.l.google.com:19302"},
+		// }, {
+		// 	URLs: []string{"stun:77.73.69.56:3478"}, //URLs: []string{"stun:global.stun.twilio.com:3478?transport=udp"},
 	}}
 }
 
@@ -75,6 +76,7 @@ func ReadConfigFromEnv(prefix string, c *Config) {
 	var ice ICEServer
 	setEnvSlice(&ice.URLs, prefix+"ICE_SERVER_URLS")
 	if len(ice.URLs) > 0 {
+		log.Println("*********************** ICE SERVERS ARE FOUND *******************************")
 		setEnvAuthType(&ice.AuthType, prefix+"ICE_SERVER_AUTH_TYPE")
 		setEnvString(&ice.AuthSecret.Secret, prefix+"ICE_SERVER_SECRET")
 		setEnvString(&ice.AuthSecret.Username, prefix+"ICE_SERVER_USERNAME")

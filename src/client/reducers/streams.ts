@@ -11,7 +11,7 @@ import { AddLocalStreamPayload, AddTrackPayload, RemoveLocalStreamPayload, Strea
 import { HANG_UP, MEDIA_STREAM, NICKNAME_REMOVE, PEER_REMOVE, STREAM_REMOVE, STREAM_TRACK_ADD, STREAM_TRACK_REMOVE, TRACKS_METADATA, MEDIA_TRACK } from '../constants'
 import { createObjectURL, MediaStream, revokeObjectURL } from '../window'
 
-const debug = _debug('peercalls')
+const debug = _debug('peercalls:streams')
 const defaultState = Object.freeze({
   localStreams: {},
   streamsByUserId: {},
