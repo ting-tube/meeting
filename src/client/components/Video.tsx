@@ -51,7 +51,10 @@ export default class Video extends React.PureComponent<VideoProps> {
     }
   }
   play = () => {
-    this.props.play()
+    const { stream } = this.props
+
+    if(stream && stream.stream)
+      this.props.play()
   }
   handleMinimize = () => {
     this.props.onMinimizeToggle({
@@ -66,7 +69,7 @@ export default class Video extends React.PureComponent<VideoProps> {
     }
   }
   render () {
-    const { mirrored, userId, windowState, stream } = this.props
+    const { mirrored, userId, windowState } = this.props
     const minimized =  windowState === 'minimized'
     const className = classnames('video-container', {
       minimized,
@@ -75,20 +78,13 @@ export default class Video extends React.PureComponent<VideoProps> {
 
     return (
       <div className={className}>
-        {
-          !stream || !stream.stream && <div>
-            Connecting
-          </div>
-        }
-        {
-          stream && stream.stream && <video
-            id={`video-${userId}`}
-            preload="none"
-            onClick={this.handleClick}
-            onLoadedMetadata={this.play}
-            ref={this.videoRef}
-          />
-        }
+        <video
+          id={`video-${userId}`}
+          playsInline
+          onClick={this.handleClick}
+          onLoadedMetadata={this.play}
+          ref={this.videoRef}
+        />
         <div className='video-footer'>
           <span className='nickname'>{this.props.nickname}</span>
           <Dropdown label={<MdMenu />}>

@@ -88,7 +88,7 @@ class PeerHandler {
     function addTrack() {
       debug(
         'peer: %s, track unmute (id: %s, stream.id: %s, time: %s)',
-        userId, track.id, stream.id, Date())
+        userId, track.id, stream.id, Date() )
       dispatch(StreamActions.addTrack({
         streamId: stream.id,
         mid,
