@@ -32,7 +32,6 @@ export interface SocketEvent {
   }
   record: {
     recordStatus: boolean
-    userId: string
   }
   signal: {
     userId: string

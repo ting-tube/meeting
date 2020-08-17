@@ -78,7 +78,7 @@ export type RecordAction = {
 }
 
 export const recordAction = (recordStatus: boolean): RecordAction => {
-  socket.emit(SOCKET_EVENT_RECORD, { recordStatus, userId })
+  socket.emit(SOCKET_EVENT_RECORD, { recordStatus })
   return {
     type: CALL_RECORD,
     payload: { recordStatus }
