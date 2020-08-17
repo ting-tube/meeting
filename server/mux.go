@@ -69,6 +69,7 @@ func NewMux(
 	rooms RoomManager,
 	tracks TracksManager,
 	prom PrometheusConfig,
+	active_rooms map[string]string,
 ) *Mux {
 	box := packr.NewBox("./templates")
 	templates := ParseTemplates(box)
@@ -96,6 +97,7 @@ func NewMux(
 		NewWSS(loggerFactory, rooms),
 		iceServers,
 		tracks,
+		active_rooms,
 	)
 
 	manifest := buildManifest(baseURL)
@@ -138,13 +140,7 @@ func NewMux(
 	return mux
 }
 
-func newWebSocketHandler(
-	loggerFactory LoggerFactory,
-	network NetworkConfig,
-	wss *WSS,
-	iceServers []ICEServer,
-	tracks TracksManager,
-) http.Handler {
+func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss *WSS, iceServers []ICEServer, tracks TracksManager, active_rooms map[string]string) http.Handler {
 	log := loggerFactory.GetLogger("mux")
 	switch network.Type {
 	case NetworkTypeSFU:
@@ -152,7 +148,7 @@ func newWebSocketHandler(
 		return NewSFUHandler(loggerFactory, wss, iceServers, network.SFU, tracks)
 	default:
 		log.Println("Using network type mesh")
-		return NewMeshHandler(loggerFactory, wss)
+		return NewMeshHandler(loggerFactory, wss, active_rooms)
 	}
 }
 
