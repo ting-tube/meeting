@@ -36,7 +36,7 @@ func InitConfig(c *Config) {
 	c.Network.Type = NetworkTypeMesh
 	c.Store.Type = StoreTypeMemory
 	c.ICEServers = []ICEServer{{
-		URLs: []string{"stun:77.73.69.56:3478"}//URLs: []string{"stun:stun.l.google.com:19302"},
+		URLs: []string{"stun:77.73.69.56:3478"}, //URLs: []string{"stun:stun.l.google.com:19302"},
 		// }, {
 		// 	URLs: []string{"stun:77.73.69.56:3478"}, //URLs: []string{"stun:global.stun.twilio.com:3478?transport=udp"},
 	}}
