@@ -35,11 +35,11 @@ func InitConfig(c *Config) {
 	c.BindPort = 3000
 	c.Network.Type = NetworkTypeMesh
 	c.Store.Type = StoreTypeMemory
-	c.ICEServers = []ICEServer{{
-		URLs: []string{"stun:77.73.69.56:3478"}, //URLs: []string{"stun:stun.l.google.com:19302"},
-		// }, {
-		// 	URLs: []string{"stun:77.73.69.56:3478"}, //URLs: []string{"stun:global.stun.twilio.com:3478?transport=udp"},
-	}}
+	// c.ICEServers = []ICEServer{{
+	// 	// URLs: []string{"stun:77.73.69.56:3478"}, //URLs: []string{"stun:stun.l.google.com:19302"},
+	// 	// }, {
+	// 	// 	URLs: []string{"stun:77.73.69.56:3478"}, //URLs: []string{"stun:global.stun.twilio.com:3478?transport=udp"},
+	// }}
 }
 
 func ReadConfig(filenames []string) (c Config, err error) {
@@ -77,12 +77,17 @@ func ReadConfigFromEnv(prefix string, c *Config) {
 
 	var ice ICEServer
 	setEnvSlice(&ice.URLs, prefix+"ICE_SERVER_URLS")
+
 	if len(ice.URLs) > 0 {
-		log.Println("*********************** ICE SERVERS ARE FOUND *******************************")
 		setEnvAuthType(&ice.AuthType, prefix+"ICE_SERVER_AUTH_TYPE")
 		setEnvString(&ice.AuthSecret.Secret, prefix+"ICE_SERVER_SECRET")
 		setEnvString(&ice.AuthSecret.Username, prefix+"ICE_SERVER_USERNAME")
-		c.ICEServers = append(c.ICEServers, ice)
+		if len(c.ICEServers) < 1 {
+			c.ICEServers = []ICEServer{ice}
+		} else {
+			c.ICEServers = append(c.ICEServers, ice)
+		}
+
 	}
 
 	setEnvString(&c.Prometheus.AccessToken, prefix+"PROMETHEUS_ACCESS_TOKEN")

@@ -27,14 +27,12 @@ func configure(loggerFactory *logger.Factory, args []string) (net.Listener, *ser
 		configFiles = append(configFiles, configFilename)
 	}
 
-	log.Printf("Using config files: %+v", configFiles)
 	c, err := server.ReadConfig(configFiles)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error reading config: %w", err)
 	}
 
 	log.Printf("Using config: %+v", c)
-	log.Printf("using file name %s", configFilename)
 	newAdapter := server.NewAdapterFactory(loggerFactory, c.Store)
 	rooms := server.NewAdapterRoomManager(newAdapter.NewAdapter)
 	tracks := server.NewMemoryTracksManager(loggerFactory, c.Network.SFU.JitterBuffer)
