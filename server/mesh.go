@@ -7,6 +7,8 @@ import (
 	"crypto/tls"
 )
 
+created := []int{}
+
 type ReadyMessage struct {
 	UserID string `json:"userId"`
 	Room   string `json:"room"`
@@ -55,22 +57,29 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS) http.Handler {
 						"room": room,
 					}
 
-					bytesRepresentation, err := json.Marshal(message)
-					if err != nil {
-						log.Printf("Error marshaling data message: %v", err)
-					}
+          if _, ok := clients[KMS_roomId]; ok {
+            removeRoom(room)
+            err = adapter.Emit(KMS_roomId, NewMessage("room_close", room, map[string]interface{}{
+            }))
+          } else {
 
-          http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-					resp, err := http.Post("https://localhost:8882/room", "application/json", bytes.NewBuffer(bytesRepresentation))
-					if err != nil {
-						log.Printf("Error sending request to kurento server: %v", err)
-					}
+            bytesRepresentation, err := json.Marshal(message)
+            if err != nil {
+              log.Printf("Error marshaling data message: %v", err)
+            }
 
-					var result map[string]interface{}
+            http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+            resp, err := http.Post("https://localhost:8882/room", "application/json", bytes.NewBuffer(bytesRepresentation))
+            if err != nil {
+              log.Printf("Error sending request to kurento server: %v", err)
+            }
 
-					json.NewDecoder(resp.Body).Decode(&result)
+            var result map[string]interface{}
 
-					log.Printf("Result from kurento server: %v", result)
+            json.NewDecoder(resp.Body).Decode(&result)
+
+            log.Printf("Result from kurento server: %v", result)
+          }
 				}
 			case "signal":
 				payload, _ := msg.Payload.(map[string]interface{})
@@ -88,6 +97,39 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS) http.Handler {
 				err = adapter.Emit(clientID, NewMessage(responseEventName, room, map[string]interface{}{
 					"message": "pong",
 				}))
+      case "create_room":
+        payload, _ := msg.Payload.(map[string]interface{})
+        roomReq, _ := payload["room"]
+        roomCreatorID, _ := payload["userId"].(string)
+        if roomExists(roomReq) {
+          err = adapter.Emit(roomCreatorID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
+            "sucessful": "0",
+            "creatorId": getRoomCreator(roomReq),
+          }))
+        } else {
+          createRoom(roomCreatorID, room)
+          err = adapter.Emit(roomCreatorID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
+            "sucessful": "1",
+            "creatorId": roomCreatorID,
+          }))
+        }
+
+      case "record":
+        payload, _ := msg.Payload.(map[string]interface{})
+        status, _ := payload["status"]
+        if clientID != getRoomCreator(room){
+          err = adapter.Emit(clientID, NewMessage("record_callback", room, map[string]interface{}{ //TODO: room?
+            "sucessful": "0",
+          }))
+        } else {
+          err = adapter.Emit(KMS_roomId, NewMessage("record", room, map[string]interface{}{ //TODO: room?
+            "status": status,
+          }))
+          err = adapter.Emit(clientID, NewMessage("record_callback", room, map[string]interface{}{ //TODO: room?
+            "sucessful": "1",
+          }))
+        }
+
 			}
 
 			if err != nil {
