@@ -34,6 +34,7 @@ func configure(loggerFactory *logger.Factory, args []string) (net.Listener, *ser
 	}
 
 	log.Printf("Using config: %+v", c)
+	log.Printf("using file name %s", configFilename)
 	newAdapter := server.NewAdapterFactory(loggerFactory, c.Store)
 	rooms := server.NewAdapterRoomManager(newAdapter.NewAdapter)
 	tracks := server.NewMemoryTracksManager(loggerFactory, c.Network.SFU.JitterBuffer)
