@@ -1,0 +1,32 @@
+base_url: ''
+bind_host: '0.0.0.0'
+bind_port: 3000
+ice_servers:
+  - urls:
+      - 'stun:stun.l.google.com:19302'
+  - urls:
+      - 'stun:global.stun.twilio.com:3478?transport=udp'
+#- urls:
+#  - 'turn:coturn.mydomain.com'
+#  auth_type: secret
+#  auth_secret:
+#    username: "peercalls"
+#    secret: "some-static-secret"
+tls:
+  cert: "./config/viktor/cert.crt"
+  key: "./config/viktor/key.key"
+store:
+  type: memory
+  # type: redis
+  # redis:
+  #   host: localhost
+  #   port: 6379
+  #   prefix: peercalls
+network:
+  type: mesh
+  # type: sfu
+  # sfu:
+  #   interfaces:
+  #   - eth0
+prometheus:
+  access_token: "mytoken"
