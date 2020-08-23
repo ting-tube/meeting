@@ -99,7 +99,7 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
             NewMessage("record_callback", room, map[string]interface{}{
               "successful": "1",
               "status": status,
-              "url": "ws://localhost:8882/" + room + "/record",  // TODO room can be duplicated in the future
+              "url": "ws://localhost:8882"  // TODO room can be duplicated in the future
             }),
           )
 				}
