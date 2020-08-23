@@ -130,7 +130,7 @@ func mustReadWS(t *testing.T, ctx context.Context, ws *websocket.Conn) server.Me
 }
 
 func setupMeshServer(rooms server.RoomManager) (s *httptest.Server, url string) {
-	handler := server.NewMeshHandler(loggerFactory, server.NewWSS(loggerFactory, rooms))
+	handler := server.NewMeshHandler(loggerFactory, server.NewWSS(loggerFactory, rooms), nil)
 	s = httptest.NewServer(handler)
 	url = "ws" + strings.TrimPrefix(s.URL, "http") + "/ws/" + roomName + "/" + clientID
 	return
