@@ -276,15 +276,12 @@ function recordLocalStream(
       console.debug('Got blob data:', event.data)
       if (event.data && event.data.size > 0) {
         ws.emit('record', {
-          isRecording: true,
           data: event.data,
         })
       }
     }
     mediaRecorder.onstop = (event) => {
-      ws.emit('record', {
-        isRecording: false,
-      })
+      ws.emit('record_stop', {})
       ws.disconnect()
     }
     return {

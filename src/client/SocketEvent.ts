@@ -57,7 +57,7 @@ export interface SocketEvent {
 
 export interface RecordingSocket {
   record: {
-    isRecording: boolean
     data?: Blob
   }
+  record_stop: {}
 }
