@@ -1,10 +1,6 @@
 package server
 
 import (
-	"bytes"
-	"crypto/tls"
-	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -51,13 +47,13 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 						"nicknames": clients,
 					}),
 				)
-				if len(clients) == 1 {
+				/* if len(clients) == 1 {
 
 					if _, ok := clients["KMS_"+room]; ok {
 						removeRoom(room, active_rooms)
 						err = adapter.Emit("KMS_"+room, NewMessage("room_close", room, map[string]interface{}{}))
 					}
-				}
+				} */
 			case "signal":
 				payload, _ := msg.Payload.(map[string]interface{})
 				signal, _ := payload["signal"]
@@ -99,12 +95,13 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 						"successful": "0",
 					}))
 				} else {
-					err = adapter.Emit("KMS_"+room, NewMessage("record", room, map[string]interface{}{ //TODO: room?
-						"status": status,
-					}))
-					err = adapter.Emit(clientID, NewMessage("record_callback", room, map[string]interface{}{ //TODO: room?
-						"sucessful": "1",
-					}))
+					err = adapter.Broadcast(
+            NewMessage("record_callback", room, map[string]interface{}{
+              "successful": "1",
+              "status": status,
+              "url": "ws://localhost:8882/" + room + "/record",  // TODO room can be duplicated in the future
+            }),
+          )
 				}
 
 			}
@@ -156,9 +153,8 @@ func clientsToPeerIDs(clients map[string]string) (peers []string) {
 }
 
 func createRoom(roomCreatorID string, room string, active_rooms map[string]string) {
-
 	active_rooms[room] = roomCreatorID
-
+/*
 	message := map[string]interface{}{
 		"room": room,
 	}
@@ -177,5 +173,5 @@ func createRoom(roomCreatorID string, room string, active_rooms map[string]strin
 
 	json.NewDecoder(resp.Body).Decode(&result)
 
-	log.Printf("Result from kurento server: %v", result)
+	log.Printf("Result from kurento server: %v", result) */
 }
