@@ -1,4 +1,4 @@
-import { MetadataPayload } from '../SocketEvent'
+import {MetadataPayload} from '../SocketEvent'
 import * as constants from '../constants'
 
 export type StreamType = 'camera' | 'desktop'
@@ -8,6 +8,10 @@ export const StreamTypeDesktop: StreamType = 'desktop'
 export interface AddLocalStreamPayload {
   type: StreamType
   stream: MediaStream
+}
+
+export interface RecordLocalStreamPayload {
+  recordUrl: string
 }
 
 export interface RemoveLocalStreamAction {
@@ -55,6 +59,15 @@ export interface UserIdPayload {
   userId: string
 }
 
+export interface RecordLocalStreamAction {
+  type: 'RECORD_LOCAL_STREAM'
+  payload: RecordLocalStreamPayload
+}
+
+export interface StopRecordLocalStreamAction {
+  type: 'STOP_RECORD_LOCAL_STREAM'
+}
+
 export interface TracksMetadataAction {
   type: 'TRACKS_METADATA'
   payload: MetadataPayload
@@ -96,10 +109,22 @@ export const tracksMetadata = (
   payload,
 })
 
+export const recordLocalStream = (
+  payload: RecordLocalStreamPayload,
+): RecordLocalStreamAction => ({
+  type: constants.STREAM_LOCAL_RECORD,
+  payload,
+})
+
+export const stopRecordLocalStream = (): StopRecordLocalStreamAction => ({
+  type: constants.STREAM_LOCAL_STOP_RECORD,
+})
 
 
 export type StreamAction =
   RemoveLocalStreamAction |
   MinimizeToggleAction |
   RemoveTrackAction |
-  AddTrackAction
+  AddTrackAction |
+  RecordLocalStreamAction |
+  StopRecordLocalStreamAction

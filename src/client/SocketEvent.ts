@@ -33,6 +33,11 @@ export interface SocketEvent {
   record: {
     recordStatus: boolean
   }
+  record_callback: {
+    successful: boolean
+    recordStatus: boolean
+    url: string
+  }
   signal: {
     userId: string
     // eslint-disable-next-line
@@ -48,4 +53,11 @@ export interface SocketEvent {
   connect: undefined
   disconnect: undefined
   ready: Ready
+}
+
+export interface RecordingSocket {
+  record: {
+    isRecording: boolean
+    data?: Blob
+  }
 }

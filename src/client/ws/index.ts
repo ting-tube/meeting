@@ -36,6 +36,11 @@ export class SocketClient<E extends Events> extends SimpleEmitter<E> {
     ws.addEventListener('message', this.wsHandleMessage)
   }
 
+  public disconnect() {
+    this.reconnectTimeout = 0
+    this.wsHandleClose()
+  }
+
   protected wsHandleClose = () => {
     if (this.connected) {
       debug('websocket connection closed')

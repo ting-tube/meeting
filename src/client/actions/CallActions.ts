@@ -72,8 +72,8 @@ export interface CallRecordPayload {
   recordStatus: boolean
 }
 
-export type RecordAction = { 
-  type: 'CALL_RECORD',
+export type RecordAction = {
+  type: 'CALL_RECORD'
   payload: CallRecordPayload
 }
 
@@ -81,7 +81,7 @@ export const recordAction = (recordStatus: boolean): RecordAction => {
   socket.emit(SOCKET_EVENT_RECORD, { recordStatus })
   return {
     type: CALL_RECORD,
-    payload: { recordStatus }
+    payload: { recordStatus },
   }
 }
 
