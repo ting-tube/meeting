@@ -35,7 +35,6 @@
   },
   "author": "Jerko Steiner",
   "license": "Apache-2.0",
-  "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.9.6",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
@@ -83,7 +82,7 @@
     "redux-thunk": "^2.3.0",
     "rimraf": "^3.0.2",
     "screenfull": "^5.0.2",
-    "simple-peer": "git+https://github.com/jeremija/simple-peer.git#transceiver-mid",
+    "simple-peer": "^9.7.2",
     "supertest": "^4.0.2",
     "ts-jest": "^25.4.0",
     "ts-node": "^8.10.1",
