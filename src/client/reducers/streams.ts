@@ -44,6 +44,9 @@ export interface LocalStream extends StreamWithURL {
   type: StreamType
   mirror: boolean
 }
+export interface RoomRecord {
+  userId: string
+}
 
 export interface UserStreams {
   userId: string

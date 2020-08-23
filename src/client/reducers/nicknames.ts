@@ -31,7 +31,10 @@ function removeNickname(
 
 export default function nicknames(
   state = defaultState,
-  action: NicknameActions | RemovePeerAction | HangUpAction,
+  action:
+    NicknameActions |
+    RemovePeerAction |
+    HangUpAction ,
 ) {
   switch (action.type) {
     case PEER_REMOVE:

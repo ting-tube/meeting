@@ -1,5 +1,5 @@
 import { connect } from 'react-redux'
-import { hangUp, init } from '../actions/CallActions'
+import { hangUp, init, recordAction } from '../actions/CallActions'
 import { sendFile, sendText } from '../actions/ChatActions'
 import { getDesktopStream, play } from '../actions/MediaActions'
 import { dismissNotification } from '../actions/NotifyActions'
@@ -9,6 +9,7 @@ import { State } from '../store'
 
 function mapStateToProps (state: State) {
   return {
+    recordStatus: state.media.recordStatus,
     dialState: state.media.dialState,
     streams: state.streams,
     peers: state.peers,
@@ -21,6 +22,7 @@ function mapStateToProps (state: State) {
 }
 
 const mapDispatchToProps = {
+  recordAction,
   hangUp,
   minimizeToggle,
   sendText,

@@ -30,10 +30,20 @@ export interface SocketEvent {
   hangUp: {
     userId: string
   }
+  record: {
+    recordStatus: boolean
+  }
   signal: {
     userId: string
     // eslint-disable-next-line
     signal: SignalData
+  }
+  create_room: {
+    room: string
+    userId: string
+  }
+  room_created: {
+    creatorId: string
   }
   connect: undefined
   disconnect: undefined

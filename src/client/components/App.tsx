@@ -2,7 +2,7 @@ import classnames from 'classnames'
 import forEach from 'lodash/forEach'
 import React from 'react'
 import Peer from 'simple-peer'
-import { hangUp } from '../actions/CallActions'
+import { hangUp, recordAction } from '../actions/CallActions'
 import { getDesktopStream } from '../actions/MediaActions'
 import { dismissNotification, Notification } from '../actions/NotifyActions'
 import { MinimizeTogglePayload, removeLocalStream, StreamTypeDesktop } from '../actions/StreamActions'
@@ -35,6 +35,8 @@ export interface AppProps {
   windowStates: WindowStates
   minimizeToggle: (payload: MinimizeTogglePayload) => void
   hangUp: typeof hangUp
+  recordAction: typeof recordAction
+  recordStatus: boolean
 }
 
 export interface AppState {
@@ -43,7 +45,7 @@ export interface AppState {
 
 export default class App extends React.PureComponent<AppProps, AppState> {
   state: AppState = {
-    chatVisible: false,
+    chatVisible: false
   }
   handleShowChat = () => {
     this.setState({
@@ -59,6 +61,10 @@ export default class App extends React.PureComponent<AppProps, AppState> {
     return this.state.chatVisible
       ? this.handleHideChat()
       : this.handleShowChat()
+  }
+  handleToggleRecord = (): void => {
+    const { recordStatus } = this.props
+    this.props.recordAction(!recordStatus)
   }
   componentDidMount () {
     const { init } = this.props
@@ -80,10 +86,13 @@ export default class App extends React.PureComponent<AppProps, AppState> {
       messagesCount,
       sendFile,
       sendText,
+      recordStatus,
     } = this.props
 
+    const { chatVisible } = this.state
+
     const chatVisibleClassName = classnames({
-      'chat-visible': this.state.chatVisible,
+      'chat-visible': chatVisible,
     })
 
     const { localStreams } = this.props.streams
@@ -91,11 +100,13 @@ export default class App extends React.PureComponent<AppProps, AppState> {
     return (
       <div className="app">
         <Toolbar
-          chatVisible={this.state.chatVisible}
+          chatVisible={chatVisible}
           dialState={this.props.dialState}
           messagesCount={messagesCount}
           nickname={nicknames[constants.ME]}
           onToggleChat={this.handleToggleChat}
+          recordStatus={recordStatus}
+          onToggleRecord={this.handleToggleRecord}
           onHangup={this.onHangup}
           desktopStream={localStreams[StreamTypeDesktop]}
           onGetDesktopStream={this.props.getDesktopStream}
@@ -112,7 +123,7 @@ export default class App extends React.PureComponent<AppProps, AppState> {
           onClose={this.handleHideChat}
           sendText={sendText}
           sendFile={sendFile}
-          visible={this.state.chatVisible}
+          visible={chatVisible}
         />
         <Media />
         {this.props.dialState !== constants.DIAL_STATE_HUNG_UP &&

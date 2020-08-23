@@ -1,5 +1,5 @@
 import { GetAsyncAction, makeAction } from '../async'
-import { DIAL, HANG_UP, SOCKET_EVENT_USERS, SOCKET_EVENT_HANG_UP, SOCKET_CONNECTED, SOCKET_DISCONNECTED } from '../constants'
+import { DIAL, HANG_UP, SOCKET_EVENT_CREATE_ROOM, SOCKET_EVENT_USERS, SOCKET_EVENT_HANG_UP, SOCKET_EVENT_RECORD, CALL_RECORD, SOCKET_CONNECTED, SOCKET_DISCONNECTED } from '../constants'
 import socket from '../socket'
 import store, { ThunkResult } from '../store'
 import { callId, userId } from '../window'
@@ -27,6 +27,7 @@ export const init = (): ThunkResult<Promise<void>> => async dispatch => {
     socket.on('connect', () => {
       dispatch(NotifyActions.warning('Connected to server socket'))
       dispatch(connected())
+      socket.emit(SOCKET_EVENT_CREATE_ROOM, { room: callId, userId })
       resolve()
     })
     socket.on('disconnect', () => {
@@ -64,6 +65,23 @@ export const hangUp = (): HangUpAction => {
   SocketActions.removeEventListeners(socket)
   return {
     type: HANG_UP,
+  }
+}
+
+export interface CallRecordPayload {
+  recordStatus: boolean
+}
+
+export type RecordAction = { 
+  type: 'CALL_RECORD',
+  payload: CallRecordPayload
+}
+
+export const recordAction = (recordStatus: boolean): RecordAction => {
+  socket.emit(SOCKET_EVENT_RECORD, { recordStatus })
+  return {
+    type: CALL_RECORD,
+    payload: { recordStatus }
   }
 }
 
