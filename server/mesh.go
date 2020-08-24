@@ -89,13 +89,13 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 				if clientID != getRoomCreator(room, active_rooms) {
           err = adapter.Broadcast(
                 NewMessage("record_callback", room, map[string]interface{}{
-                  "successful": "0",
+                  "successful": false,
                 }),
               )
 				} else {
 					err = adapter.Broadcast(
             NewMessage("record_callback", room, map[string]interface{}{
-              "successful": "1",
+              "successful": true,
               "recordStatus": status,
               "url": "ws://localhost:8882",
             }),

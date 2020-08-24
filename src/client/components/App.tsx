@@ -16,6 +16,8 @@ import { Media } from './Media'
 import Notifications from './Notifications'
 import Toolbar from './Toolbar'
 import Videos from './Videos'
+import socket from '../socket'
+import {SOCKET_EVENT_RECORD} from '../constants'
 
 export interface AppProps {
   dialState: constants.DialState
@@ -45,7 +47,7 @@ export interface AppState {
 
 export default class App extends React.PureComponent<AppProps, AppState> {
   state: AppState = {
-    chatVisible: false
+    chatVisible: false,
   }
   handleShowChat = () => {
     this.setState({
@@ -64,7 +66,7 @@ export default class App extends React.PureComponent<AppProps, AppState> {
   }
   handleToggleRecord = (): void => {
     const { recordStatus } = this.props
-    this.props.recordAction(!recordStatus)
+    socket.emit(SOCKET_EVENT_RECORD, { recordStatus: !recordStatus })
   }
   componentDidMount () {
     const { init } = this.props

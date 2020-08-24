@@ -7,6 +7,7 @@ import {ClientSocket} from '../socket'
 import {Dispatch, GetState, Store} from '../store'
 import {removeNickname, setNicknames} from './NicknameActions'
 import {recordLocalStream, stopRecordLocalStream, tracksMetadata} from './StreamActions'
+import {recordAction} from "./CallActions";
 
 const debug = _debug('peercalls')
 const sdpDebug = _debug('peercalls:sdp')
@@ -56,6 +57,7 @@ class SocketHandler {
                             SocketEvent['record_callback']) => {
     const {dispatch} = this
     if (successful) {
+      dispatch(recordAction(recordStatus))
       if (recordStatus) {
         dispatch(recordLocalStream({
           recordUrl: `${url}/${this.roomName}/${this.userId}`,
