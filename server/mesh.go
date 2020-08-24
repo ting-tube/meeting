@@ -70,7 +70,6 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 				payload, _ := msg.Payload.(map[string]interface{})
 				roomReq, _ := payload["room"].(string)
 				roomCreatorID, _ := payload["userId"].(string)
-        log.Printf("Room created (payload: %s, roomReq: %s, roomCreatorID: %s)", payload, roomReq, roomCreatorID)
 				if roomExists(roomReq, active_rooms) {
 					err = adapter.Emit(clientID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
 						"successful": "0",
