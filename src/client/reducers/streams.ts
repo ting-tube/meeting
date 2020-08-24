@@ -275,9 +275,7 @@ function recordLocalStream(
     mediaRecorder.ondataavailable = (event) => {
       console.debug('Got blob data:', event.data)
       if (event.data && event.data.size > 0) {
-        ws.emit('record', {
-          data: event.data,
-        })
+        ws.emit('record', event.data)
       }
     }
     mediaRecorder.onstop = (event) => {

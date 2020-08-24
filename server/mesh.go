@@ -47,13 +47,9 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 						"nicknames": clients,
 					}),
 				)
-				/* if len(clients) == 1 {
-
-					if _, ok := clients["KMS_"+room]; ok {
+				 if len(clients) == 0 {
 						removeRoom(room, active_rooms)
-						err = adapter.Emit("KMS_"+room, NewMessage("room_close", room, map[string]interface{}{}))
-					}
-				} */
+				}
 			case "signal":
 				payload, _ := msg.Payload.(map[string]interface{})
 				signal, _ := payload["signal"]
@@ -65,23 +61,24 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 					"userId": clientID,
 					"signal": signal,
 				}))
-			case "ping":
+/* 			case "ping":
 				log.Printf("Send pong message to %s ", clientID)
 				err = adapter.Emit(clientID, NewMessage(responseEventName, room, map[string]interface{}{
 					"message": "pong",
-				}))
+				})) */
 			case "create_room":
 				payload, _ := msg.Payload.(map[string]interface{})
 				roomReq, _ := payload["room"].(string)
 				roomCreatorID, _ := payload["userId"].(string)
+        log.Printf("Room created (payload: %s, roomReq: %s, roomCreatorID: %s)", payload, roomReq, roomCreatorID)
 				if roomExists(roomReq, active_rooms) {
-					err = adapter.Emit(roomCreatorID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
+					err = adapter.Emit(clientID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
 						"successful": "0",
 						"creatorId":  getRoomCreator(roomReq, active_rooms),
 					}))
 				} else {
 					createRoom(roomCreatorID, room, active_rooms)
-					err = adapter.Emit(roomCreatorID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
+					err = adapter.Emit(clientID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
 						"successful": "1",
 						"creatorId":  roomCreatorID,
 					}))
@@ -89,21 +86,22 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 
 			case "record":
 				payload, _ := msg.Payload.(map[string]interface{})
-				status, _ := payload["status"].(string)
+				status, _ := payload["recordStatus"].(bool)
 				if clientID != getRoomCreator(room, active_rooms) {
-					err = adapter.Emit(clientID, NewMessage("record_callback", room, map[string]interface{}{ //TODO: room?
-						"successful": "0",
-					}))
+          err = adapter.Broadcast(
+                NewMessage("record_callback", room, map[string]interface{}{
+                  "successful": "0",
+                }),
+              )
 				} else {
 					err = adapter.Broadcast(
             NewMessage("record_callback", room, map[string]interface{}{
               "successful": "1",
-              "status": status,
-              "url": "ws://localhost:8882", // TODO room can be duplicated in the future
+              "recordStatus": status,
+              "url": "ws://localhost:8882",
             }),
           )
 				}
-
 			}
 
 			if err != nil {
@@ -154,24 +152,4 @@ func clientsToPeerIDs(clients map[string]string) (peers []string) {
 
 func createRoom(roomCreatorID string, room string, active_rooms map[string]string) {
 	active_rooms[room] = roomCreatorID
-/*
-	message := map[string]interface{}{
-		"room": room,
-	}
-	bytesRepresentation, err := json.Marshal(message)
-	if err != nil {
-		log.Printf("Error marshaling data message: %v", err)
-	}
-
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	resp, err := http.Post("https://localhost:8882/room", "application/json", bytes.NewBuffer(bytesRepresentation))
-	if err != nil {
-		log.Printf("Error sending request to kurento server: %v", err)
-	}
-
-	var result map[string]interface{}
-
-	json.NewDecoder(resp.Body).Decode(&result)
-
-	log.Printf("Result from kurento server: %v", result) */
 }

@@ -148,18 +148,18 @@ export default function media(
       return handleMediaStream(state, action)
     case MEDIA_PLAY:
       return handlePlay(state, action)
-    case CALL_RECORD: 
+    case CALL_RECORD:
       return {
         ...state,
         recordStatus: action.payload.recordStatus
       }
     case DIAL:
       return handleDial(state, action)
-      case CREATOR_ID_ADD:
-        return {
-          ...state, 
-          creatorId: action.payload.creatorId
-        }
+    case CREATOR_ID_ADD:
+      return {
+        ...state,
+        creatorId: action.payload.creatorId
+      }
     case SOCKET_CONNECTED:
       return {
         ...state,

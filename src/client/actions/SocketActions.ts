@@ -39,12 +39,6 @@ class SocketHandler {
     this.userId = options.userId
     this.nickname = options.nickname
   }
-
-  handleRoomCreated = ({creatorId}: SocketEvent['room_created']) => {
-    const {dispatch} = this
-    dispatch(PeerActions.addCreatorId(creatorId))
-    this.readyEmmiter()
-  }
   handleSignal = ({userId, signal}: SocketEvent['signal']) => {
     const {getState} = this
     const peer = getState().peers[userId]
@@ -101,14 +95,6 @@ class SocketHandler {
         stream,
       })(dispatch, getState))
   }
-
-  readyEmmiter() {
-    this.socket.emit(constants.SOCKET_EVENT_READY, {
-      room: this.roomName,
-      nickname: this.nickname,
-      userId: this.nickname,
-    })
-  }
 }
 
 export interface HandshakeOptions {
@@ -137,7 +123,6 @@ export function handshake(options: HandshakeOptions) {
   removeEventListeners(socket)
 
   socket.on(constants.SOCKET_EVENT_METADATA, handler.handleMetadata)
-  socket.on(constants.SOCKET_EVENT_ROOM_CREATED, handler.handleRoomCreated)
   socket.on(constants.SOCKET_EVENT_SIGNAL, handler.handleSignal)
   socket.on(constants.SOCKET_EVENT_USERS, handler.handleUsers)
   socket.on(constants.SOCKET_EVENT_HANG_UP, handler.handleHangUp)
@@ -146,7 +131,6 @@ export function handshake(options: HandshakeOptions) {
 
   debug('userId: %s', userId)
 
-  // ?remove
   socket.emit(constants.SOCKET_EVENT_READY, {
     room: roomName,
     nickname: nickname,
