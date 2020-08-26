@@ -79,7 +79,7 @@ export class SocketClient<E extends Events> extends SimpleEmitter<E> {
   }
 
   emit<K extends keyof E>(name: K, value: E[K]): void {
-    if (value.constructor.name === 'Blob') {
+    if (value && value.constructor.name === 'Blob') {
       this.ws.send(value)
     } else {
       const message: Message = {

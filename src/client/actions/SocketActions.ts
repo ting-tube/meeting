@@ -7,7 +7,7 @@ import {ClientSocket} from '../socket'
 import {Dispatch, GetState, Store} from '../store'
 import {removeNickname, setNicknames} from './NicknameActions'
 import {recordLocalStream, stopRecordLocalStream, tracksMetadata} from './StreamActions'
-import {recordAction} from "./CallActions";
+import {recordAction} from './CallActions'
 
 const debug = _debug('peercalls')
 const sdpDebug = _debug('peercalls:sdp')
