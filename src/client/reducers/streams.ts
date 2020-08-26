@@ -39,6 +39,7 @@ const defaultState = Object.freeze({
   metadataByPeerIdMid: {},
   trackIdToPeerIdMid: {},
   tracksByPeerIdMid: {},
+  localRecorders: [],
 })
 
 const peerIdMidSeparator = '::'
@@ -83,7 +84,7 @@ export interface StreamsState {
   metadataByPeerIdMid: Record<string, TrackMetadata>
   trackIdToPeerIdMid: Record<string, string>
   tracksByPeerIdMid: Record<string, TrackInfo>
-  localRecorder?: MediaRecorder
+  localRecorders: MediaRecorder[]
 }
 
 interface TrackInfo {
@@ -263,40 +264,40 @@ function recordLocalStream(
   state: StreamsState, payload: RecordLocalStreamPayload,
 ): StreamsState {
   debug('streams recordLocalTracks: %o', payload)
-  const ws = new SocketClient<RecordingSocket>(payload.recordUrl)
-  const localStream = Object.values(state.localStreams)[0]?.stream
   const recorderOptions = {
     mimeType: 'video/webm',
     videoBitsPerSecond: 200000, // 0.2 Mbit/sec.
   }
-  if (localStream) {
-    const mediaRecorder = new MediaRecorder(localStream, recorderOptions)
-    mediaRecorder.start(1000)
-    mediaRecorder.ondataavailable = (event) => {
-      console.debug('Got blob data:', event.data)
-      if (event.data && event.data.size > 0) {
-        ws.emit('record', event.data)
+  const mediaRecorders = Object.entries(state.localStreams)
+    .map(([type, stream])=> {
+      const streamRecordUrl = `${payload.recordUrl}/${type}`
+      const ws = new SocketClient<RecordingSocket>(streamRecordUrl)
+      const mediaRecorder = new MediaRecorder(stream!.stream, recorderOptions)
+      mediaRecorder.start(1000)
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          ws.emit('record', event.data)
+        }
       }
-    }
-    mediaRecorder.onstop = (event) => {
-      ws.emit('record_stop', {})
-      ws.disconnect()
-    }
-    return {
+      mediaRecorder.onstop = (event) => {
+        ws.emit('record_stop', {})
+        ws.disconnect()
+      }
+      return mediaRecorder
+  })
+  return {
       ...state,
-      localRecorder: mediaRecorder,
+      localRecorders: mediaRecorders,
     }
-  }
-  return state
 }
 
 function stopRecordLocalStream(
   state: StreamsState,
 ): StreamsState {
-  const {localRecorder} = state
-  if (localRecorder) {
+  const {localRecorders} = state
+  localRecorders.forEach((localRecorder)=> {
     localRecorder.stop()
-  }
+  })
   return state
 }
 
