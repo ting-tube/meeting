@@ -302,7 +302,7 @@ function recordLocalStream(
       ...state,
       localRecorders: mediaRecorders,
       streamsRecordUrl: payload.recordUrl,
-      isRecording: !state.isRecording
+      isRecording: !state.isRecording,
     }
 }
 
@@ -348,7 +348,7 @@ function stopRecordLocalStream(
 
   return {
     ...state,
-    isRecording: !state.isRecording
+    isRecording: !state.isRecording,
   }
 }
 
