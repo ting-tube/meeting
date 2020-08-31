@@ -41,9 +41,15 @@ const defaultState = Object.freeze({
   tracksByPeerIdMid: {},
   localRecorders: [],
   streamsRecordUrl: '',
+  isRecording: false,
 })
 
 const peerIdMidSeparator = '::'
+
+const recorderOptions = {
+  mimeType: 'video/webm',
+  videoBitsPerSecond: 200000, // 0.2 Mbit/sec.
+}
 
 function getPeerIdMid(userId: string, mid: string): string {
   return userId + peerIdMidSeparator + mid
@@ -87,6 +93,7 @@ export interface StreamsState {
   tracksByPeerIdMid: Record<string, TrackInfo>
   localRecorders: [string, MediaRecorder][]
   streamsRecordUrl: string
+  isRecording: boolean
 }
 
 interface TrackInfo {
@@ -153,7 +160,6 @@ function addLocalStream(
 ): StreamsState {
   const {stream} = payload
   debug('streams addLocalStream')
-
   const streamWithURL: LocalStream = {
     stream: payload.stream,
     streamId: payload.stream.id,
@@ -161,6 +167,10 @@ function addLocalStream(
     url: safeCreateObjectURL(stream),
     mirror: payload.type === StreamTypeCamera &&
       !!stream.getVideoTracks().find(t => !notMirroredRegexp.test(t.label)),
+  }
+  
+  if (state.isRecording) {
+    recordAdditionalStream(state, streamWithURL)
   }
 
   const existingStream = state.localStreams[payload.type]
@@ -185,7 +195,6 @@ function removeLocalStream(
   if (!existing) {
     return state
   }
-  checkRecordLocalStream(state, existing)
 
   stopStream(existing)
   return {
@@ -272,10 +281,6 @@ function recordLocalStream(
   state: StreamsState, payload: RecordLocalStreamPayload,
 ): StreamsState {
   debug('streams recordLocalTracks: %o', payload)
-  const recorderOptions = {
-    mimeType: 'video/webm',
-    videoBitsPerSecond: 200000, // 0.2 Mbit/sec.
-  }
   const mediaRecorders = Object.entries(state.localStreams)
     .map(([type, stream]) => {
       const streamRecordUrl = `${payload.recordUrl}/${type}`
@@ -296,20 +301,41 @@ function recordLocalStream(
   return {
       ...state,
       localRecorders: mediaRecorders,
-      streamsRecordUrl: payload.recordUrl
+      streamsRecordUrl: payload.recordUrl,
+      isRecording: !state.isRecording
     }
 }
 
-function checkRecordLocalStream(state: StreamsState, stream: LocalStream) {
-  const { localRecorders } = state
-
-  const recorderWithStreamId = localRecorders.find(localRecorder => localRecorder[0] === stream.streamId)
-  if(recorderWithStreamId) {
-    recorderWithStreamId[1].stop()
-  } else {
-
+function recordAdditionalStream(
+  state: StreamsState, localStream: LocalStream, 
+): StreamsState {
+  const mediaRecorder = () => {
+    const streamRecordUrl = `${state.streamsRecordUrl}/${localStream.type}`
+    const ws = new SocketClient<RecordingSocket>(streamRecordUrl)
+    const mediaRecorder = new MediaRecorder(localStream.stream, recorderOptions)
+    mediaRecorder.start(1000)
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) {
+        ws.emit('record', event.data)
+      }
+    }
+    mediaRecorder.onstop = (event) => {
+      ws.emit('record_stop', {})
+      ws.disconnect()
+    }
+    return [localStream.stream.id, mediaRecorder] as StreamIdRecorder
   }
+  const {localRecorders} = state
+  localRecorders.push(mediaRecorder())
 
+  return {
+    ...state,
+    localRecorders: localRecorders,
+  }
+  // return {
+  //   ...state,
+  //   localRecorders: [...state.localRecorders, localRecorder()]
+  // }
 }
 
 function stopRecordLocalStream(
@@ -319,7 +345,11 @@ function stopRecordLocalStream(
   localRecorders.forEach((localRecorder) => {
     localRecorder[1].stop()
   })
-  return state
+
+  return {
+    ...state,
+    isRecording: !state.isRecording
+  }
 }
 
 function addTrack(
