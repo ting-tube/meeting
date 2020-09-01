@@ -133,7 +133,7 @@ export function setAudioConstraint(
 export const play = makeAction('MEDIA_PLAY', async () => {
   const promises = Array
   .from(document.querySelectorAll('video'))
-  .filter(video => video.paused)
+  .filter(video => video.paused && video.srcObject !== null)
   .map(video => video.play())
   await Promise.all(promises)
 })
