@@ -12,7 +12,7 @@
   "scripts": {
     "start": "npm run css && npm run js && npm run start:server",
     "start:server": "go run main.go -c ./config/viktor/config.yaml",
-    "start:sfu": "PEERCALLS_ICE_SERVER_URLS=turn:94.242.54.56 PEERCALLS_ICE_SERVER_AUTH_TYPE=secret PEERCALLS_ICE_SERVER_SECRET=wallit-static-password PEERCALLS_ICE_SERVER_USERNAME=example PEERCALLS_NETWORK_TYPE=sfu go run main.go",
+    "start:sfu": "PEERCALLS_NETWORK_TYPE=sfu go run main.go",
     "start:watch": "chastifol [ npm run js:watch ] [ npm run css:watch ] [ npm run start:server ]",
     "prepublishOnly": "npm run build",
     "build": "npm run css && npm run js",
