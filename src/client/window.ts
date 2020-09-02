@@ -20,4 +20,5 @@ export const network = valueOf('network')!
 debug('Using ice servers: %o', iceServers)
 
 export const MediaStream = window.MediaStream
+export const MediaRecorder = window.MediaRecorder
 export const MediaStreamTrack = window.MediaStreamTrack

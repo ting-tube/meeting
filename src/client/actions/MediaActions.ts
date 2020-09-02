@@ -1,7 +1,19 @@
 import _debug from 'debug'
 import { AsyncAction, makeAction } from '../async'
-import { MEDIA_AUDIO_CONSTRAINT_SET, MEDIA_ENUMERATE, MEDIA_STREAM, MEDIA_VIDEO_CONSTRAINT_SET, MEDIA_TRACK, MEDIA_TRACK_ENABLE } from '../constants'
-import { AddLocalStreamPayload, StreamTypeCamera, StreamTypeDesktop, StreamType } from './StreamActions'
+import {
+  MEDIA_AUDIO_CONSTRAINT_SET,
+  MEDIA_ENUMERATE,
+  MEDIA_STREAM,
+  MEDIA_VIDEO_CONSTRAINT_SET,
+  MEDIA_TRACK,
+  MEDIA_TRACK_ENABLE,
+} from '../constants'
+import {
+  AddLocalStreamPayload,
+  StreamTypeCamera,
+  StreamTypeDesktop,
+  StreamType,
+} from './StreamActions'
 import { MediaStream } from '../window'
 
 const debug = _debug('peercalls')

@@ -1,6 +1,6 @@
 import classnames from 'classnames'
 import React from 'react'
-import { MdCallEnd, MdShare, MdContentCopy, MdFullscreen, MdFullscreenExit, MdQuestionAnswer, MdScreenShare, MdStopScreenShare } from 'react-icons/md'
+import { MdCallEnd, MdShare, MdContentCopy, MdFullscreen, MdFullscreenExit, MdQuestionAnswer, MdScreenShare, MdStopScreenShare, MdRadioButtonUnchecked, MdRadioButtonChecked } from 'react-icons/md'
 import screenfull from 'screenfull'
 import { getDesktopStream } from '../actions/MediaActions'
 import { removeLocalStream } from '../actions/StreamActions'
@@ -15,7 +15,9 @@ export interface ToolbarProps {
   nickname: string
   messagesCount: number
   desktopStream: LocalStream | undefined
+  recordStatus: boolean
   onToggleChat: () => void
+  onToggleRecord: () => void
   onGetDesktopStream: typeof getDesktopStream
   onRemoveLocalStream: typeof removeLocalStream
   onHangup: () => void
@@ -117,7 +119,14 @@ export default class Toolbar extends React.PureComponent<
     }
   }
   render() {
-    const { messagesCount } = this.props
+    const {
+      messagesCount,
+      recordStatus,
+      onToggleRecord,
+      onHangup,
+      chatVisible,
+      desktopStream,
+    } = this.props
     const unreadCount = messagesCount - this.state.readMessages
     const hasUnread = unreadCount > 0
     const isInCall = this.props.dialState === DIAL_STATE_IN_CALL
@@ -142,9 +151,9 @@ export default class Toolbar extends React.PureComponent<
               className='chat'
               key='chat'
               icon={MdQuestionAnswer}
-              blink={!this.props.chatVisible && hasUnread}
+              blink={!chatVisible && hasUnread}
               onClick={this.handleToggleChat}
-              on={this.props.chatVisible}
+              on={chatVisible}
               title='Toggle Chat'
             />
           )}
@@ -157,7 +166,7 @@ export default class Toolbar extends React.PureComponent<
               icon={MdStopScreenShare}
               offIcon={MdScreenShare}
               onClick={this.handleToggleShareDesktop}
-              on={!!this.props.desktopStream}
+              on={!!desktopStream}
               key='stream-desktop'
               title='Share Desktop'
             />
@@ -165,7 +174,17 @@ export default class Toolbar extends React.PureComponent<
             <VideoDropdown />
 
             <ToolbarButton
-              onClick={this.props.onHangup}
+              className='recording'
+              icon={MdRadioButtonUnchecked}
+              offIcon={MdRadioButtonChecked}
+              onClick={onToggleRecord}
+              on={recordStatus}
+              key='recording'
+              title='Start Recording'
+            />
+
+            <ToolbarButton
+              onClick={onHangup}
               key='hangup'
               className='hangup'
               icon={MdCallEnd}

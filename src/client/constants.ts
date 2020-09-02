@@ -37,6 +37,8 @@ export const NICKNAME_REMOVE = 'NICKNAME_REMOVE'
 export const PEER_ADD = 'PEER_ADD'
 export const PEER_REMOVE = 'PEER_REMOVE'
 
+export const CALL_RECORD = 'CALL_RECORD'
+
 // this data channel must have the same name as the one on the server-side,
 // when SFU is used.
 export const PEER_DATA_CHANNEL_NAME = 'data'
@@ -51,14 +53,22 @@ export const PEER_EVENT_DATA = 'data'
 export const SOCKET_CONNECTED = 'SOCKET_CONNECTED'
 export const SOCKET_DISCONNECTED = 'SOCKET_DISCONNECTED'
 export const SOCKET_EVENT_METADATA = 'metadata'
+export const SOCKET_EVENT_CREATE_ROOM = 'create_room'
+export const SOCKET_EVENT_ROOM_CREATED = 'room_created'
 export const SOCKET_EVENT_READY = 'ready'
 export const SOCKET_EVENT_SIGNAL = 'signal'
 export const SOCKET_EVENT_USERS = 'users'
 export const SOCKET_EVENT_HANG_UP = 'hangUp'
+export const SOCKET_EVENT_RECORD = 'record'
+export const SOCKET_EVENT_RECORD_CALLBACK = 'record_callback'
 
 export const STREAM_ADD = 'PEER_STREAM_ADD'
+export const STREAM_LOCAL_RECORD = 'RECORD_LOCAL_STREAM'
+export const STREAM_LOCAL_STOP_RECORD = 'STOP_RECORD_LOCAL_STREAM'
 export const STREAM_REMOVE = 'PEER_STREAM_REMOVE'
 export const STREAM_TRACK_ADD = 'PEER_STREAM_TRACK_ADD'
 export const STREAM_TRACK_REMOVE = 'PEER_STREAM_TRACK_REMOVE'
 
 export const TRACKS_METADATA = 'TRACKS_METADATA'
+
+export const CREATOR_ID_ADD = 'CREATOR_ID_ADD'

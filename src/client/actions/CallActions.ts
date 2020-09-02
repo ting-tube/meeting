@@ -1,10 +1,22 @@
 import { GetAsyncAction, makeAction } from '../async'
-import { DIAL, HANG_UP, SOCKET_EVENT_USERS, SOCKET_EVENT_HANG_UP, SOCKET_CONNECTED, SOCKET_DISCONNECTED } from '../constants'
+import {
+  DIAL,
+  HANG_UP,
+  SOCKET_EVENT_CREATE_ROOM,
+  SOCKET_EVENT_USERS,
+  SOCKET_EVENT_HANG_UP,
+  CALL_RECORD,
+  SOCKET_CONNECTED,
+  SOCKET_DISCONNECTED,
+  SOCKET_EVENT_ROOM_CREATED,
+} from '../constants'
 import socket from '../socket'
 import store, { ThunkResult } from '../store'
 import { callId, userId } from '../window'
 import * as NotifyActions from './NotifyActions'
 import * as SocketActions from './SocketActions'
+import {SocketEvent} from '../SocketEvent'
+import * as PeerActions from './PeerActions'
 
 export interface ConnectedAction {
   type: 'SOCKET_CONNECTED'
@@ -27,11 +39,16 @@ export const init = (): ThunkResult<Promise<void>> => async dispatch => {
     socket.on('connect', () => {
       dispatch(NotifyActions.warning('Connected to server socket'))
       dispatch(connected())
+      socket.emit(SOCKET_EVENT_CREATE_ROOM, { room: callId, userId })
       resolve()
     })
     socket.on('disconnect', () => {
       dispatch(NotifyActions.error('Server socket disconnected'))
       dispatch(disconnected())
+    })
+    socket.on(SOCKET_EVENT_ROOM_CREATED,
+      ({creatorId}: SocketEvent['room_created'])=> {
+        dispatch(PeerActions.addCreatorId(creatorId))
     })
   })
 }
@@ -64,6 +81,22 @@ export const hangUp = (): HangUpAction => {
   SocketActions.removeEventListeners(socket)
   return {
     type: HANG_UP,
+  }
+}
+
+export interface CallRecordPayload {
+  recordStatus: boolean
+}
+
+export type RecordAction = {
+  type: 'CALL_RECORD'
+  payload: CallRecordPayload
+}
+
+export const recordAction = (recordStatus: boolean): RecordAction => {
+  return {
+    type: CALL_RECORD,
+    payload: { recordStatus },
   }
 }
 
