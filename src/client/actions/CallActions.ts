@@ -5,7 +5,6 @@ import {
   SOCKET_EVENT_CREATE_ROOM,
   SOCKET_EVENT_USERS,
   SOCKET_EVENT_HANG_UP,
-  SOCKET_EVENT_RECORD,
   CALL_RECORD,
   SOCKET_CONNECTED,
   SOCKET_DISCONNECTED,
@@ -16,7 +15,6 @@ import store, { ThunkResult } from '../store'
 import { callId, userId } from '../window'
 import * as NotifyActions from './NotifyActions'
 import * as SocketActions from './SocketActions'
-import * as constants from '../constants'
 import {SocketEvent} from '../SocketEvent'
 import * as PeerActions from './PeerActions'
 

@@ -5,7 +5,7 @@ import screenfull from 'screenfull'
 import { getDesktopStream } from '../actions/MediaActions'
 import { removeLocalStream } from '../actions/StreamActions'
 import { DialState, DIAL_STATE_IN_CALL } from '../constants'
-import { LocalStream, RoomRecord } from '../reducers/streams'
+import { LocalStream } from '../reducers/streams'
 import { callId } from '../window'
 import { AudioDropdown, VideoDropdown } from './DeviceDropdown'
 import { ToolbarButton } from './ToolbarButton'
@@ -125,7 +125,7 @@ export default class Toolbar extends React.PureComponent<
       onToggleRecord,
       onHangup,
       chatVisible,
-      desktopStream
+      desktopStream,
     } = this.props
     const unreadCount = messagesCount - this.state.readMessages
     const hasUnread = unreadCount > 0

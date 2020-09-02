@@ -151,14 +151,14 @@ export default function media(
     case CALL_RECORD:
       return {
         ...state,
-        recordStatus: action.payload.recordStatus
+        recordStatus: action.payload.recordStatus,
       }
     case DIAL:
       return handleDial(state, action)
     case CREATOR_ID_ADD:
       return {
         ...state,
-        creatorId: action.payload.creatorId
+        creatorId: action.payload.creatorId,
       }
     case SOCKET_CONNECTED:
       return {

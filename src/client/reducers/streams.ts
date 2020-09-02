@@ -155,7 +155,7 @@ function getUserId(
 function addLocalStream(
   state: StreamsState, payload: AddLocalStreamPayload,
 ): StreamsState {
-  const {localRecorders} = state
+  const {localRecorders, streamsRecordUrl} = state
   const {stream} = payload
   debug('streams addLocalStream')
   const streamWithURL: LocalStream = {
@@ -173,7 +173,7 @@ function addLocalStream(
   }
 
   if (state.isRecording) {
-    localRecorders.push(recordAdditionalStream(streamWithURL, state.streamsRecordUrl))
+    localRecorders.push(recordAdditionalStream(streamWithURL, streamsRecordUrl))
   }
 
   return {
@@ -190,7 +190,7 @@ function removeLocalStream(
   state: StreamsState, payload: RemoveLocalStreamPayload,
 ): StreamsState {
   let newLocalRecorders: StreamIdRecorder[] = []
-  const {localStreams} = state
+  const {localStreams, localRecorders} = state
   const existing = localStreams[payload.streamType]
 
   if (!existing) {
@@ -198,7 +198,7 @@ function removeLocalStream(
   }
 
   if (state.isRecording) {
-    newLocalRecorders = stopRecordAdditionalStream(state.localRecorders, existing)
+    newLocalRecorders = stopRecordAdditionalStream(localRecorders, existing)
   }
 
   return {
@@ -300,14 +300,14 @@ function recordLocalStream(
 }
 
 function recordAdditionalStream(
-  localStream: LocalStream, streamsRecordUrl: string
+  localStream: LocalStream, streamsRecordUrl: string,
 ): StreamIdRecorder {
   const streamRecordUrl = `${streamsRecordUrl}/${localStream.type}`
   return initializeMediaRecorder(streamRecordUrl, localStream.stream)
 }
 
 function initializeMediaRecorder(
-  streamRecordUrl: string, stream: MediaStream
+  streamRecordUrl: string, stream: MediaStream,
 ): StreamIdRecorder {
   const ws = new SocketClient<RecordingSocket>(streamRecordUrl)
   const mediaRecorder = new MediaRecorder(stream, recorderOptions)
@@ -339,9 +339,9 @@ function stopRecordLocalStream(
 }
 
 function stopRecordAdditionalStream(
-  localRecorders: [string, MediaRecorder][], localStream: LocalStream
+  localRecorders: [string, MediaRecorder][], localStream: LocalStream,
 ): StreamIdRecorder[] {
-  let newLocalRecorders: StreamIdRecorder[] = []
+  const newLocalRecorders: StreamIdRecorder[] = []
 
   for (let i = 0; i < localRecorders.length; i += 1) {
     const currentRecorderWithStreamId = localRecorders[i]
@@ -616,8 +616,8 @@ export default function streams(
     case PEER_REMOVE:
       return removePeer(state, action.payload)
     case HANG_UP:
-      forEach(state.localStreams, ls => stopStream(ls!, state))
-      forEach(state.streamsByUserId, us => stopAllTracks(us.streams, state))
+      forEach(state.localStreams, ls => stopStream(ls!))
+      forEach(state.streamsByUserId, us => stopAllTracks(us.streams))
       return defaultState
     case MEDIA_STREAM:
       if (action.status === 'resolved') {

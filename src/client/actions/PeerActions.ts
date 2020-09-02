@@ -203,7 +203,7 @@ export interface AddPeerAction {
 }
 
 export interface AddCreatorIdAction {
-  type: 'CREATOR_ID_ADD',
+  type: 'CREATOR_ID_ADD'
   payload: CreatorIdPayload
 }
 
