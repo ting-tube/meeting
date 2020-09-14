@@ -10,6 +10,8 @@ import { iceServers } from '../window'
 import { addMessage } from './ChatActions'
 import * as NotifyActions from './NotifyActions'
 import * as StreamActions from './StreamActions'
+import { insertableStreamsCodec } from '../insertable-streams'
+
 
 const debug = _debug('peercalls:streams')
 const sdpDebug = _debug('peercalls:sdp')
@@ -67,17 +69,32 @@ class PeerHandler {
       // call, now is the time to share local media stream with the peer since
       // we no longer automatically send the stream to the peer.
       s!.stream.getTracks().forEach(track => {
-        peer.addTrack(track, s!.stream)
+        const sender = peer.addTrack(track, s!.stream)
+        insertableStreamsCodec.encrypt(sender)
       })
     })
   }
-  handleTrack = (track: MediaStreamTrack, stream: MediaStream, mid: string) => {
+  handleTrack = (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    transceiver: RTCRtpTransceiver,
+  ) => {
     const { user, dispatch } = this
     const userId = user.id
+    const mid = transceiver.mid!
+
     debug('peer: %s, track: %s, stream: %s, mid: %s, time: %s',
           userId, track.id, stream.id, mid, Date())
+
+    insertableStreamsCodec.decrypt({
+      receiver: transceiver.receiver,
+      mid,
+      userId,
+    })
+
     // Listen to mute event to know when a track was removed
     // https://github.com/feross/simple-peer/issues/512
+
     track.onmute = () => {
       debug(
         'peer: %s, track mute (id: %s, stream.id: %s, time: %s)',
@@ -158,7 +175,13 @@ export function createPeer (options: CreatePeerOptions) {
 
     const peer = new Peer({
       initiator,
-      config: { iceServers },
+      config: {
+        iceServers,
+        enableInsertableStreams: true,
+        // legacy flags for insertable streams
+        forceEncodedVideoInsertableStreams: true,
+        forceEncodedAudioInsertableStreams: true,
+      },
       channelName: constants.PEER_DATA_CHANNEL_NAME,
       // trickle: false,
       // Allow the peer to receive video, even if it's not sending stream:
