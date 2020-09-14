@@ -32,6 +32,8 @@ func configure(loggerFactory *logger.Factory, args []string) (net.Listener, *ser
 		return nil, nil, fmt.Errorf("Error reading config: %w", err)
 	}
 
+	server.InitAuth([]byte(c.JwtSecret))
+
 	log.Printf("Using config: %+v", c)
 	newAdapter := server.NewAdapterFactory(loggerFactory, c.Store)
 	rooms := server.NewAdapterRoomManager(newAdapter.NewAdapter)

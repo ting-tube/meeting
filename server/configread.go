@@ -34,6 +34,28 @@ func InitConfig(c *Config) {
 	c.BindPort = 3000
 	c.Network.Type = NetworkTypeMesh
 	c.Store.Type = StoreTypeMemory
+	// Just a random string
+	// Highly recommended set this in config
+	c.JwtSecret = `jfoObcXCpJLLeYfYimqF
+					EksfBfMxFZjpQIsoqX2K
+					3fc1z1IiVeOdAFWrFOVh
+					hmg6KfrTK4Gguy9tGegL
+					RC1cJgcRw2VoGKAf1dVb
+					v8aYaPGeBa39VnYRp6QE
+					40t10f4idDFWfe3sCjng
+					8zWsAgJYI5O96Dj7G6Ve
+					wVLXVcjUduD2cCD4fdUC
+					t9NvmjVT3A7ncSF0gPd8
+					pCXv6efqeAPc1KZBxqdC
+					1MmrfMlHdrpWWAwu3mGQ
+					gGqDV7FHCQQdN2bK9y5c
+					oD6FwwNYCslA6Avy8omd
+					o7tLjVBd9jQGaX88fBHG
+					WDEpjBobeKnBeOUWBrUV
+					B8dkCdLiDR5iKYNK7DNL
+					ZONh8VFxOd3jLgXrrRRq
+					LZWVuUxgeOjJCoJZ15ck
+					46C7kV3iiNJG0zsUcN0I`
 	c.ICEServers = []ICEServer{{
 		URLs: []string{"stun:stun.l.google.com:19302"},
 	}, {
@@ -62,6 +84,7 @@ func ReadConfigFromEnv(prefix string, c *Config) {
 	setEnvInt(&c.BindPort, prefix+"BIND_PORT")
 	setEnvString(&c.TLS.Cert, prefix+"TLS_CERT")
 	setEnvString(&c.TLS.Key, prefix+"TLS_KEY")
+	setEnvString(&c.JwtSecret, prefix+"JWT_SECRET")
 
 	setEnvStoreType(&c.Store.Type, prefix+"STORE_TYPE")
 	setEnvString(&c.Store.Redis.Host, prefix+"STORE_REDIS_HOST")

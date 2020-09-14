@@ -69,4 +69,5 @@ type Config struct {
 	Store      StoreConfig      `yaml:"store"`
 	Network    NetworkConfig    `yaml:"network"`
 	Prometheus PrometheusConfig `yaml:"prometheus"`
+	JwtSecret  string           `yaml:"jwt_secret"`
 }

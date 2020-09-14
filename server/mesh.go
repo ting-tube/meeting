@@ -18,6 +18,12 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		sub, err := wss.Subscribe(w, r)
+		token, err := JWTFromCookie(r)
+		if err != nil {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte("Forbidden"))
+			return
+		}
 		if err != nil {
 			log.Printf("Error subscribing to websocket messages: %s", err)
 		}
@@ -77,24 +83,24 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 			case "create_room":
 				payload, _ := msg.Payload.(map[string]interface{})
 				roomReq, _ := payload["room"].(string)
-				roomCreatorID, _ := payload["userId"].(string)
+
 				if roomExists(roomReq, active_rooms) {
-					err = adapter.Emit(roomCreatorID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
+					err = adapter.Emit(token["user_id"].(string), NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
 						"successful": "0",
 						"creatorId":  getRoomCreator(roomReq, active_rooms),
 					}))
 				} else {
-					createRoom(roomCreatorID, room, active_rooms)
-					err = adapter.Emit(roomCreatorID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
+					createRoom(token["user_id"].(string), room, active_rooms)
+					err = adapter.Emit(token["user_id"].(string), NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
 						"successful": "1",
-						"creatorId":  roomCreatorID,
+						"creatorId":  token["user_id"].(string),
 					}))
 				}
 
 			case "record":
 				payload, _ := msg.Payload.(map[string]interface{})
 				status, _ := payload["status"].(string)
-				if clientID != getRoomCreator(room, active_rooms) {
+				if token["user_id"].(string) != getRoomCreator(room, active_rooms) {
 					err = adapter.Emit(clientID, NewMessage("record_callback", room, map[string]interface{}{ //TODO: room?
 						"successful": "0",
 					}))
