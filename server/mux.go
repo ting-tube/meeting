@@ -172,11 +172,16 @@ func (mux *Mux) routeIndex(w http.ResponseWriter, r *http.Request) (string, inte
 
 func (mux *Mux) routeCall(w http.ResponseWriter, r *http.Request) (string, interface{}, error) {
 	callID := url.PathEscape(path.Base(r.URL.Path))
-	userID := NewUUIDBase62()
+	var userID string
+	token, err := JWTFromCookie(r)
+	if err != nil {
+		userID = CreateTokenCookie(w)
+	} else {
+		userID = token["user_id"].(string)
+	}
 
 	iceServers := GetICEAuthServers(mux.iceServers)
 	iceServersJSON, _ := json.Marshal(iceServers)
-
 	data := map[string]interface{}{
 		"Nickname":   r.Header.Get("X-Forwarded-User"),
 		"CallID":     callID,
