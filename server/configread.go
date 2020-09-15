@@ -35,6 +35,7 @@ func InitConfig(c *Config) {
 	c.BindPort = 3000
 	c.Network.Type = NetworkTypeMesh
 	c.Store.Type = StoreTypeMemory
+	c.RecordServiceURL = "ws://localhost:8882"
 	// Just a random string
 	// Highly recommended set this in config
 	c.JwtSecret = `jfoObcXCpJLLeYfYimqF
@@ -88,6 +89,7 @@ func ReadConfigFromEnv(prefix string, c *Config) {
 	setEnvString(&c.TLS.Cert, prefix+"TLS_CERT")
 	setEnvString(&c.TLS.Key, prefix+"TLS_KEY")
 	setEnvString(&c.JwtSecret, prefix+"JWT_SECRET")
+	setEnvString(&c.RecordServiceURL, prefix+"RECORD_SERVICE_URL")
 
 	setEnvStoreType(&c.Store.Type, prefix+"STORE_TYPE")
 	setEnvString(&c.Store.Redis.Host, prefix+"STORE_REDIS_HOST")

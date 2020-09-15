@@ -61,13 +61,14 @@ type PrometheusConfig struct {
 }
 
 type Config struct {
-	BaseURL    string           `yaml:"base_url"`
-	BindHost   string           `yaml:"bind_host"`
-	BindPort   int              `yaml:"bind_port"`
-	ICEServers []ICEServer      `yaml:"ice_servers"`
-	TLS        TLSConfig        `yaml:"tls"`
-	Store      StoreConfig      `yaml:"store"`
-	Network    NetworkConfig    `yaml:"network"`
-	Prometheus PrometheusConfig `yaml:"prometheus"`
-	JwtSecret  string           `yaml:"jwt_secret"`
+	BaseURL          string           `yaml:"base_url"`
+	BindHost         string           `yaml:"bind_host"`
+	BindPort         int              `yaml:"bind_port"`
+	ICEServers       []ICEServer      `yaml:"ice_servers"`
+	TLS              TLSConfig        `yaml:"tls"`
+	Store            StoreConfig      `yaml:"store"`
+	Network          NetworkConfig    `yaml:"network"`
+	Prometheus       PrometheusConfig `yaml:"prometheus"`
+	JwtSecret        string           `yaml:"jwt_secret"`
+	RecordServiceURL string           `yaml:"record_serice_url"`
 }

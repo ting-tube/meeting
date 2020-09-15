@@ -92,32 +92,22 @@ func FromAuthContext(ctx context.Context) (*jwt.Token, jwt.MapClaims, error) {
 	return token, claims, err
 }
 
-// TokenFromCookie tries to retreive the token string from a cookie named
+// JWTFromFromCookie tries to retrieve the jwt.MapClaims from a cookie named
 // "jwt".
-func TokenFromCookie(r *http.Request) string {
-	fmt.Println(r.Cookies())
+func JWTFromFromCookie(r *http.Request) (jwt.MapClaims, error) {
 	cookie, err := r.Cookie("jwt")
 	if err != nil {
-		return ""
-	}
-	return cookie.Value
-}
-
-// JWTFromCookie tries to retreive the jwt.Token from a cookie named
-// "jwt".
-func JWTFromCookie(r *http.Request) (jwt.MapClaims, error) {
-	tokenStr := TokenFromCookie(r)
-	if tokenStr == "" {
 		return nil, ErrNoTokenFound
 	}
-	token, err := tokenAuth.Decode(tokenStr)
+
+	token, err := tokenAuth.Decode(cookie.Value)
 	if err != nil {
-		if verr, ok := err.(*jwt.ValidationError); ok {
-			if verr.Errors&jwt.ValidationErrorExpired > 0 {
+		if validationErr, ok := err.(*jwt.ValidationError); ok {
+			if validationErr.Errors&jwt.ValidationErrorExpired > 0 {
 				return nil, ErrExpired
-			} else if verr.Errors&jwt.ValidationErrorIssuedAt > 0 {
+			} else if validationErr.Errors&jwt.ValidationErrorIssuedAt > 0 {
 				return nil, ErrIATInvalid
-			} else if verr.Errors&jwt.ValidationErrorNotValidYet > 0 {
+			} else if validationErr.Errors&jwt.ValidationErrorNotValidYet > 0 {
 				return nil, ErrNBFInvalid
 			}
 		}
@@ -139,15 +129,13 @@ func JWTFromCookie(r *http.Request) (jwt.MapClaims, error) {
 	return nil, ErrUnauthorized
 }
 
-// CreateTokenCookie create new token and saved in  cookie named
+// Add record service URL in the config and rename some functions and  variables
 // "jwt".
 func CreateTokenCookie(w http.ResponseWriter) string {
 	userID := NewUUIDBase62()
 
-	_, tokenString, err := tokenAuth.Encode(jwt.MapClaims{"user_id": userID})
-	if err != nil {
-		fmt.Println(err)
-	}
+	_, tokenString, _ := tokenAuth.Encode(jwt.MapClaims{"user_id": userID})
+
 	http.SetCookie(w, &http.Cookie{
 		Name:    "jwt",
 		Value:   tokenString,

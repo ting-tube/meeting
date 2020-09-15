@@ -9,12 +9,11 @@ type ReadyMessage struct {
 	Room   string `json:"room"`
 }
 
-func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[string]string) http.Handler {
+func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[string]string, recordServiceURL string) http.Handler {
 	log := loggerFactory.GetLogger("mesh")
-
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		sub, err := wss.Subscribe(w, r)
-		token, err := JWTFromCookie(r)
+		token, err := JWTFromFromCookie(r)
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte("Forbidden"))
@@ -107,7 +106,7 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 						NewMessage("record_callback", room, map[string]interface{}{
 							"successful":   true,
 							"recordStatus": status,
-							"url":          "ws://localhost:8882",
+							"url":          recordServiceURL,
 						}),
 					)
 				}
