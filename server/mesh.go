@@ -13,7 +13,7 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 	log := loggerFactory.GetLogger("mesh")
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		sub, err := wss.Subscribe(w, r)
-		token, err := JWTFromFromCookie(r)
+		token, err := JWTTokenFromCookie(r)
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte("Forbidden"))

@@ -175,7 +175,7 @@ func (mux *Mux) routeIndex(w http.ResponseWriter, r *http.Request) (string, inte
 func (mux *Mux) routeCall(w http.ResponseWriter, r *http.Request) (string, interface{}, error) {
 	callID := url.PathEscape(path.Base(r.URL.Path))
 	var userID string
-	token, err := JWTFromFromCookie(r)
+	token, err := JWTTokenFromCookie(r)
 	if err != nil {
 		userID = CreateTokenCookie(w)
 	} else {

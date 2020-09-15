@@ -43,32 +43,31 @@ func InitAuth(secretKey []byte) {
 	}
 }
 
-func (ja *JWTAuth) Encode(claims jwt.Claims) (t *jwt.Token, tokenString string, err error) {
-	t = jwt.New(ja.signer)
-	t.Claims = claims
-	tokenString, err = t.SignedString(ja.signKey)
-	t.Raw = tokenString
+func (ja *JWTAuth) Encode(claims jwt.Claims) (token *jwt.Token, tokenString string, err error) {
+	token = jwt.New(ja.signer)
+	token.Claims = claims
+	tokenString, err = token.SignedString(ja.signKey)
+	token.Raw = tokenString
 	return
 }
 
-func (ja *JWTAuth) Decode(tokenString string) (t *jwt.Token, err error) {
-	t, err = ja.parser.Parse(tokenString, ja.keyFunc)
+func (ja *JWTAuth) Decode(tokenString string) (token *jwt.Token, err error) {
+	token, err = ja.parser.Parse(tokenString, ja.keyFunc)
 	if err != nil {
 		return nil, err
 	}
 	return
 }
 
-func (ja *JWTAuth) keyFunc(t *jwt.Token) (interface{}, error) {
+func (ja *JWTAuth) keyFunc(token *jwt.Token) (interface{}, error) {
 	if ja.verifyKey != nil {
 		return ja.verifyKey, nil
-	} else {
-		return ja.signKey, nil
 	}
+	return ja.signKey, nil
 }
 
-func NewAuthContext(ctx context.Context, t *jwt.Token, err error) context.Context {
-	ctx = context.WithValue(ctx, TokenCtxKey, t)
+func NewAuthContext(ctx context.Context, token *jwt.Token, err error) context.Context {
+	ctx = context.WithValue(ctx, TokenCtxKey, token)
 	ctx = context.WithValue(ctx, ErrorCtxKey, err)
 	return ctx
 }
@@ -92,9 +91,9 @@ func FromAuthContext(ctx context.Context) (*jwt.Token, jwt.MapClaims, error) {
 	return token, claims, err
 }
 
-// JWTFromFromCookie tries to retrieve the jwt.MapClaims from a cookie named
+// JWTTokenFromCookie tries to retrieve the jwt.MapClaims from a cookie named
 // "jwt".
-func JWTFromFromCookie(r *http.Request) (jwt.MapClaims, error) {
+func JWTTokenFromCookie(r *http.Request) (jwt.MapClaims, error) {
 	cookie, err := r.Cookie("jwt")
 	if err != nil {
 		return nil, ErrNoTokenFound
@@ -129,8 +128,7 @@ func JWTFromFromCookie(r *http.Request) (jwt.MapClaims, error) {
 	return nil, ErrUnauthorized
 }
 
-// Add record service URL in the config and rename some functions and  variables
-// "jwt".
+// CreateTokenCookie create new jwt and saved in cookie named jwt
 func CreateTokenCookie(w http.ResponseWriter) string {
 	userID := NewUUIDBase62()
 
@@ -140,7 +138,7 @@ func CreateTokenCookie(w http.ResponseWriter) string {
 		Name:    "jwt",
 		Value:   tokenString,
 		Path:    "/",
-		Expires: time.Now().Add(time.Hour * 24 * 365),
+		Expires: time.Now().Add(time.Hour * 24 * 30),
 	})
 	return userID
 
