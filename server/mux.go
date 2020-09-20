@@ -70,6 +70,7 @@ func NewMux(
 	tracks TracksManager,
 	prom PrometheusConfig,
 	active_rooms map[string]string,
+	recordServiceURL string,
 ) *Mux {
 	box := packr.NewBox("./templates")
 	templates := ParseTemplates(box)
@@ -98,6 +99,7 @@ func NewMux(
 		iceServers,
 		tracks,
 		active_rooms,
+		recordServiceURL,
 	)
 
 	manifest := buildManifest(baseURL)
@@ -140,7 +142,7 @@ func NewMux(
 	return mux
 }
 
-func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss *WSS, iceServers []ICEServer, tracks TracksManager, active_rooms map[string]string) http.Handler {
+func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss *WSS, iceServers []ICEServer, tracks TracksManager, active_rooms map[string]string, recordServiceURL string) http.Handler {
 	log := loggerFactory.GetLogger("mux")
 	switch network.Type {
 	case NetworkTypeSFU:
@@ -148,7 +150,7 @@ func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss
 		return NewSFUHandler(loggerFactory, wss, iceServers, network.SFU, tracks)
 	default:
 		log.Println("Using network type mesh")
-		return NewMeshHandler(loggerFactory, wss, active_rooms)
+		return NewMeshHandler(loggerFactory, wss, active_rooms, recordServiceURL)
 	}
 }
 
@@ -172,11 +174,16 @@ func (mux *Mux) routeIndex(w http.ResponseWriter, r *http.Request) (string, inte
 
 func (mux *Mux) routeCall(w http.ResponseWriter, r *http.Request) (string, interface{}, error) {
 	callID := url.PathEscape(path.Base(r.URL.Path))
-	userID := NewUUIDBase62()
+	var userID string
+	token, err := JWTTokenFromCookie(r)
+	if err != nil {
+		userID = CreateTokenCookie(w)
+	} else {
+		userID = token["user_id"].(string)
+	}
 
 	iceServers := GetICEAuthServers(mux.iceServers)
 	iceServersJSON, _ := json.Marshal(iceServers)
-
 	data := map[string]interface{}{
 		"Nickname":   r.Header.Get("X-Forwarded-User"),
 		"CallID":     callID,
