@@ -164,7 +164,7 @@ function addLocalStream(
     type: payload.type,
     url: safeCreateObjectURL(stream),
     mirror: payload.type === StreamTypeCamera &&
-      !!stream.getVideoTracks().find(t => !notMirroredRegexp.test(t.label))
+      !!stream.getVideoTracks().find(t => !notMirroredRegexp.test(t.label)),
   }
 
   const existingStream = state.localStreams[payload.type]
@@ -288,7 +288,7 @@ function recordLocalStream(
     .map(([type, stream]) => {
       const streamRecordUrl = `${payload.recordUrl}/${type}`
       return initializeMediaRecorder(streamRecordUrl, stream!.stream)
-    }
+    },
   )
 
   return {
@@ -317,7 +317,7 @@ function initializeMediaRecorder(
       ws.emit('record', event.data)
     }
   }
-  mediaRecorder.onstop = (event) => {
+  mediaRecorder.onstop = () => {
     ws.emit('record_stop', {})
     ws.disconnect()
   }

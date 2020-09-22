@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"sync"
 )
 
 type ReadyMessage struct {
@@ -9,7 +10,7 @@ type ReadyMessage struct {
 	Room   string `json:"room"`
 }
 
-func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[string]string, recordServiceURL string) http.Handler {
+func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map, recordServiceURL string) http.Handler {
 	log := loggerFactory.GetLogger("mesh")
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		sub, err := wss.Subscribe(w, r)
@@ -47,13 +48,15 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 				log.Printf("Got clients: %s", clients)
 				err = adapter.Broadcast(
 					NewMessage(responseEventName, room, map[string]interface{}{
-						"initiator": clientID,
-						"peerIds":   clientsToPeerIDs(clients),
-						"nicknames": clients,
+						"initiator":    clientID,
+						"peerIds":      clientsToPeerIDs(clients),
+						"nicknames":    clients,
+						"recordStatus": getRoomRecordStatus(room, activeRooms),
+						"recordUrl":    recordServiceURL,
 					}),
 				)
 				if len(clients) == 0 {
-					removeRoom(room, active_rooms)
+					removeRoom(room, activeRooms)
 				}
 			case "signal":
 				// todo check for auth
@@ -77,13 +80,13 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 				payload, _ := msg.Payload.(map[string]interface{})
 				roomReq, _ := payload["room"].(string)
 
-				if roomExists(roomReq, active_rooms) {
+				if roomExists(roomReq, activeRooms) {
 					err = adapter.Emit(clientID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
 						"successful": "0",
-						"creatorId":  getRoomCreator(roomReq, active_rooms),
+						"creatorId":  getRoomCreator(roomReq, activeRooms),
 					}))
 				} else {
-					createRoom(token["user_id"].(string), room, active_rooms)
+					createRoom(token["user_id"].(string), room, activeRooms)
 					err = adapter.Emit(clientID, NewMessage("room_created", room, map[string]interface{}{ //TODO: room?
 						"successful": "1",
 						"creatorId":  token["user_id"].(string),
@@ -95,7 +98,7 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 				payload, _ := msg.Payload.(map[string]interface{})
 				status, _ := payload["recordStatus"].(bool)
 
-				if token["user_id"].(string) != getRoomCreator(room, active_rooms) {
+				if token["user_id"].(string) != getRoomCreator(room, activeRooms) {
 					err = adapter.Broadcast(
 						NewMessage("record_callback", room, map[string]interface{}{
 							"successful": false,
@@ -109,6 +112,7 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 							"url":          recordServiceURL,
 						}),
 					)
+					updateRoomRecordStatus(room, activeRooms, status)
 				}
 			}
 
@@ -120,19 +124,35 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 	return http.HandlerFunc(fn)
 }
 
-func removeRoom(room string, active_rooms map[string]string) {
-	delete(active_rooms, room)
+func removeRoom(room string, activeRooms *sync.Map) {
+	activeRooms.Delete(room)
 }
 
-func roomExists(room string, active_rooms map[string]string) bool {
-	if _, ok := active_rooms[room]; ok {
+func roomExists(room string, activeRooms *sync.Map) bool {
+	if _, ok := activeRooms.Load(room); ok {
 		return true
 	}
 	return false
 }
 
-func getRoomCreator(room string, active_rooms map[string]string) string {
-	return active_rooms[room]
+func getRoomCreator(room string, activeRooms *sync.Map) string {
+	if room, ok := activeRooms.Load(room); ok {
+		return room.(*ActiveRoom).creatorId
+	}
+	return ""
+}
+
+func getRoomRecordStatus(room string, activeRooms *sync.Map) bool {
+	if room, ok := activeRooms.Load(room); ok {
+		return room.(*ActiveRoom).recordingStatus
+	}
+	return false
+}
+
+func updateRoomRecordStatus(room string, activeRooms *sync.Map, recordStatus bool) {
+	if room, ok := activeRooms.Load(room); ok {
+		room.(*ActiveRoom).recordingStatus = recordStatus
+	}
 }
 
 func getReadyClients(adapter Adapter) (map[string]string, error) {
@@ -158,6 +178,6 @@ func clientsToPeerIDs(clients map[string]string) (peers []string) {
 	return
 }
 
-func createRoom(roomCreatorID string, room string, active_rooms map[string]string) {
-	active_rooms[room] = roomCreatorID
+func createRoom(roomCreatorID string, room string, activeRooms *sync.Map) {
+	activeRooms.Store(room, &ActiveRoom{creatorId: roomCreatorID, recordingStatus: false})
 }

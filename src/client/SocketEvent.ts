@@ -25,6 +25,8 @@ export interface SocketEvent {
     peerIds: string[]
     // mapping of userId / nickname
     nicknames: Record<string, string>
+    recordStatus: boolean
+    recordUrl: string
   }
   metadata: MetadataPayload
   hangUp: {

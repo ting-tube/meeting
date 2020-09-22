@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/go-chi/chi"
 	"github.com/gobuffalo/packr"
@@ -32,11 +33,12 @@ func buildManifest(baseURL string) []byte {
 }
 
 type Mux struct {
-	BaseURL    string
-	handler    *chi.Mux
-	iceServers []ICEServer
-	network    NetworkConfig
-	version    string
+	BaseURL     string
+	handler     *chi.Mux
+	iceServers  []ICEServer
+	network     NetworkConfig
+	version     string
+	activeRooms *sync.Map
 }
 
 func (mux *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -60,6 +62,11 @@ type RoomManager interface {
 	Exit(room string)
 }
 
+type ActiveRoom struct {
+	creatorId       string
+	recordingStatus bool
+}
+
 func NewMux(
 	loggerFactory LoggerFactory,
 	baseURL string,
@@ -69,7 +76,6 @@ func NewMux(
 	rooms RoomManager,
 	tracks TracksManager,
 	prom PrometheusConfig,
-	active_rooms map[string]string,
 	recordServiceURL string,
 ) *Mux {
 	box := packr.NewBox("./templates")
@@ -78,11 +84,12 @@ func NewMux(
 
 	handler := chi.NewRouter()
 	mux := &Mux{
-		BaseURL:    baseURL,
-		handler:    handler,
-		iceServers: iceServers,
-		network:    network,
-		version:    version,
+		BaseURL:     baseURL,
+		handler:     handler,
+		iceServers:  iceServers,
+		network:     network,
+		version:     version,
+		activeRooms: &sync.Map{},
 	}
 
 	var root string
@@ -98,7 +105,7 @@ func NewMux(
 		NewWSS(loggerFactory, rooms),
 		iceServers,
 		tracks,
-		active_rooms,
+		mux.activeRooms,
 		recordServiceURL,
 	)
 
@@ -142,7 +149,7 @@ func NewMux(
 	return mux
 }
 
-func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss *WSS, iceServers []ICEServer, tracks TracksManager, active_rooms map[string]string, recordServiceURL string) http.Handler {
+func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss *WSS, iceServers []ICEServer, tracks TracksManager, activeRooms *sync.Map, recordServiceURL string) http.Handler {
 	log := loggerFactory.GetLogger("mux")
 	switch network.Type {
 	case NetworkTypeSFU:
@@ -150,7 +157,7 @@ func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss
 		return NewSFUHandler(loggerFactory, wss, iceServers, network.SFU, tracks)
 	default:
 		log.Println("Using network type mesh")
-		return NewMeshHandler(loggerFactory, wss, active_rooms, recordServiceURL)
+		return NewMeshHandler(loggerFactory, wss, activeRooms, recordServiceURL)
 	}
 }
 
