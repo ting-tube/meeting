@@ -75,7 +75,8 @@ class SocketHandler {
     dispatch(tracksMetadata(payload))
     insertableStreamsCodec.setTrackMetadata(payload.metadata)
   }
-  handleUsers = ({initiator, peerIds, nicknames}: SocketEvent['users']) => {
+  handleUsers = ({initiator, peerIds, nicknames,
+                   recordStatus, recordUrl}: SocketEvent['users']) => {
     const {socket, stream, dispatch, getState} = this
     debug('socket remote peerIds: %o', peerIds)
 
@@ -86,7 +87,9 @@ class SocketHandler {
 
     const isInitiator = initiator === this.userId
     debug('isInitiator', isInitiator)
-
+    this.handleRecordCallback({
+        successful: recordStatus, recordStatus, url: recordUrl,
+    })
     dispatch(setNicknames(nicknames))
 
     peerIds

@@ -60,6 +60,11 @@ type RoomManager interface {
 	Exit(room string)
 }
 
+type ActiveRoom struct {
+	creatorId string
+	recordingStatus bool
+}
+
 func NewMux(
 	loggerFactory LoggerFactory,
 	baseURL string,
@@ -69,7 +74,7 @@ func NewMux(
 	rooms RoomManager,
 	tracks TracksManager,
 	prom PrometheusConfig,
-	active_rooms map[string]string,
+	active_rooms map[string]ActiveRoom,
 	recordServiceURL string,
 ) *Mux {
 	box := packr.NewBox("./templates")
@@ -142,7 +147,7 @@ func NewMux(
 	return mux
 }
 
-func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss *WSS, iceServers []ICEServer, tracks TracksManager, active_rooms map[string]string, recordServiceURL string) http.Handler {
+func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss *WSS, iceServers []ICEServer, tracks TracksManager, active_rooms map[string]ActiveRoom, recordServiceURL string) http.Handler {
 	log := loggerFactory.GetLogger("mux")
 	switch network.Type {
 	case NetworkTypeSFU:

@@ -13,7 +13,7 @@ import (
 )
 
 var gitDescribe string = "v0.0.0"
-var active_rooms map[string]string = make(map[string]string)
+var active_rooms map[string]ActiveRoom = make(map[string]ActiveRoom)
 
 func configure(loggerFactory *logger.Factory, args []string) (net.Listener, *server.StartStopper, error) {
 	log := loggerFactory.GetLogger("main")

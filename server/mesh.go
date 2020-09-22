@@ -9,7 +9,7 @@ type ReadyMessage struct {
 	Room   string `json:"room"`
 }
 
-func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[string]string, recordServiceURL string) http.Handler {
+func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[string]ActiveRoom, recordServiceURL string) http.Handler {
 	log := loggerFactory.GetLogger("mesh")
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		sub, err := wss.Subscribe(w, r)
@@ -50,6 +50,8 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 						"initiator": clientID,
 						"peerIds":   clientsToPeerIDs(clients),
 						"nicknames": clients,
+						"recordStatus": getRoomRecordStatus(room, active_rooms),
+						"recordUrl": recordServiceURL
 					}),
 				)
 				if len(clients) == 0 {
@@ -120,19 +122,23 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 	return http.HandlerFunc(fn)
 }
 
-func removeRoom(room string, active_rooms map[string]string) {
+func removeRoom(room string, active_rooms map[string]ActiveRoom) {
 	delete(active_rooms, room)
 }
 
-func roomExists(room string, active_rooms map[string]string) bool {
+func roomExists(room string, active_rooms map[string]ActiveRoom) bool {
 	if _, ok := active_rooms[room]; ok {
 		return true
 	}
 	return false
 }
 
-func getRoomCreator(room string, active_rooms map[string]string) string {
-	return active_rooms[room]
+func getRoomCreator(room string, active_rooms map[string]ActiveRoom) string {
+	return active_rooms[room].creatorId
+}
+
+func getRoomRecordStatus(room string, active_rooms map[string]ActiveRoom) bool {
+	return active_rooms[room].recordStatus
 }
 
 func getReadyClients(adapter Adapter) (map[string]string, error) {
@@ -158,6 +164,6 @@ func clientsToPeerIDs(clients map[string]string) (peers []string) {
 	return
 }
 
-func createRoom(roomCreatorID string, room string, active_rooms map[string]string) {
-	active_rooms[room] = roomCreatorID
+func createRoom(roomCreatorID string, room string, active_rooms map[string]ActiveRoom) {
+	active_rooms[room] = ActiveRoom{creatorId: roomCreatorID, recordStatus: false}
 }
