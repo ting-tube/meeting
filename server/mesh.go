@@ -111,6 +111,7 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, active_rooms map[stri
 							"url":          recordServiceURL,
 						}),
 					)
+					updateRoomRecordStatus(room, active_rooms, status)
 				}
 			}
 
@@ -139,6 +140,10 @@ func getRoomCreator(room string, active_rooms map[string]ActiveRoom) string {
 
 func getRoomRecordStatus(room string, active_rooms map[string]ActiveRoom) bool {
 	return active_rooms[room].recordStatus
+}
+
+func updateRoomRecordStatus(room string, active_rooms map[string]ActiveRoom, recordStatus bool)  {
+	active_rooms[room].recordStatus = recordStatus
 }
 
 func getReadyClients(adapter Adapter) (map[string]string, error) {
