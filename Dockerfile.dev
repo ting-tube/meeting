@@ -1,0 +1,12 @@
+FROM golang:1.14-buster
+WORKDIR /app
+RUN chown nobody /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY .git .git
+COPY main.go .
+COPY server server
+COPY res res
+EXPOSE 3000
+STOPSIGNAL SIGINT
+ENTRYPOINT ["go", "run", "main.go"]

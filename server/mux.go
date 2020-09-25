@@ -15,23 +15,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func buildManifest(baseURL string) []byte {
-	b, _ := json.Marshal(map[string]interface{}{
-		"name":             "Peer Calls",
-		"short_name":       "Peer Calls",
-		"start_url":        baseURL,
-		"display":          "standalone",
-		"background_color": "#086788",
-		"description":      "Group peer-to-peer calls for everyone. Create a private room. Share the link.",
-		"icons": []map[string]string{{
-			"src":   baseURL + "/res/icon.png",
-			"sizes": "256x256",
-			"type":  "image/png",
-		}},
-	})
-	return b
-}
-
 type Mux struct {
 	BaseURL     string
 	handler     *chi.Mux
@@ -78,9 +61,6 @@ func NewMux(
 	prom PrometheusConfig,
 	recordServiceURL string,
 ) *Mux {
-	box := packr.NewBox("./templates")
-	templates := ParseTemplates(box)
-	renderer := NewRenderer(loggerFactory, templates, baseURL, version)
 
 	handler := chi.NewRouter()
 	mux := &Mux{
@@ -109,13 +89,8 @@ func NewMux(
 		recordServiceURL,
 	)
 
-	manifest := buildManifest(baseURL)
 	handler.Route(root, func(router chi.Router) {
-		router.Get("/", withGauge(prometheusHomeViewsTotal, renderer.Render(mux.routeIndex)))
-		router.Handle("/static/*", static(baseURL+"/static", packr.NewBox("../build")))
-		router.Handle("/res/*", static(baseURL+"/res", packr.NewBox("../res")))
 		router.Post("/call", withGauge(prometheusCallJoinTotal, mux.routeNewCall))
-		router.Get("/call/{callID}", withGauge(prometheusCallViewsTotal, renderer.Render(mux.routeCall)))
 		router.Get("/probes/liveness", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -123,10 +98,6 @@ func NewMux(
 		router.Get("/probes/health", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-		})
-		router.Get("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(manifest)
 		})
 		router.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
 			accessToken := r.Header.Get("Authorization")
@@ -143,6 +114,10 @@ func NewMux(
 			promhttp.Handler().ServeHTTP(w, r)
 		})
 
+		serveIndexHtml := func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, "build/index.html")
+		}
+		router.Handle("/*", CustomFileServer(http.Dir("./build"), serveIndexHtml))
 		router.Mount("/ws", wsHandler)
 	})
 
