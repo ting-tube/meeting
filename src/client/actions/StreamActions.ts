@@ -12,6 +12,8 @@ export interface AddLocalStreamPayload {
 
 export interface RecordLocalStreamPayload {
   recordUrl: string
+  roomID: string
+  userID: string
 }
 
 export interface RemoveLocalStreamAction {

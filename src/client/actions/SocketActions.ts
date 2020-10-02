@@ -63,6 +63,8 @@ class SocketHandler {
       if (recordStatus) {
         dispatch(recordLocalStream({
           recordUrl: `${url}/${this.roomName}/${this.userId}`,
+          roomID: this.roomName,
+          userID: this.userId,
         }))
       } else {
         dispatch(stopRecordLocalStream())

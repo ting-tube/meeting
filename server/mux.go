@@ -3,11 +3,14 @@ package server
 import (
 	"encoding/json"
 	"html/template"
+	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/gobuffalo/packr"
@@ -33,12 +36,13 @@ func buildManifest(baseURL string) []byte {
 }
 
 type Mux struct {
-	BaseURL     string
-	handler     *chi.Mux
-	iceServers  []ICEServer
-	network     NetworkConfig
-	version     string
-	activeRooms *sync.Map
+	BaseURL          string
+	handler          *chi.Mux
+	iceServers       []ICEServer
+	network          NetworkConfig
+	version          string
+	activeRooms      *sync.Map
+	recordServiceURL string
 }
 
 func (mux *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -84,12 +88,13 @@ func NewMux(
 
 	handler := chi.NewRouter()
 	mux := &Mux{
-		BaseURL:     baseURL,
-		handler:     handler,
-		iceServers:  iceServers,
-		network:     network,
-		version:     version,
-		activeRooms: &sync.Map{},
+		BaseURL:          baseURL,
+		handler:          handler,
+		iceServers:       iceServers,
+		network:          network,
+		version:          version,
+		activeRooms:      &sync.Map{},
+		recordServiceURL: recordServiceURL,
 	}
 
 	var root string
@@ -115,6 +120,7 @@ func NewMux(
 		router.Handle("/static/*", static(baseURL+"/static", packr.NewBox("../build")))
 		router.Handle("/res/*", static(baseURL+"/res", packr.NewBox("../res")))
 		router.Post("/call", withGauge(prometheusCallJoinTotal, mux.routeNewCall))
+		router.Post("/api/sessions/{room}/join/{user}", withGauge(prometheusCallJoinRecord, mux.routeJoinRoom))
 		router.Get("/call/{callID}", withGauge(prometheusCallViewsTotal, renderer.Render(mux.routeCall)))
 		router.Get("/probes/liveness", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
@@ -198,4 +204,22 @@ func (mux *Mux) routeCall(w http.ResponseWriter, r *http.Request) (string, inter
 		"Version":    mux.version,
 	}
 	return "call.html", data, nil
+}
+
+func (mux *Mux) routeJoinRoom(w http.ResponseWriter, r *http.Request) {
+
+	client := &http.Client{
+		Timeout: 15 * time.Second,
+	}
+	room := chi.URLParam(r, "room")
+	user := chi.URLParam(r, "user")
+
+	resp, err := client.Post(mux.recordServiceURL+"/api/sessions/"+room+"/join/"+user, "application/json", r.Body)
+	if err != nil {
+		log.Printf("Error join record session %v", err)
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("Forbidden"))
+		return
+	}
+	io.Copy(w, resp.Body)
 }

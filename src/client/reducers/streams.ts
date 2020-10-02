@@ -8,6 +8,10 @@ import {HangUpAction} from '../actions/CallActions'
 import {MediaTrackAction, MediaStreamAction, MediaTrackPayload} from '../actions/MediaActions'
 import {NicknameRemoveAction, NicknameRemovePayload} from '../actions/NicknameActions'
 import {RemovePeerAction} from '../actions/PeerActions'
+import { iceServers } from '../window'
+import Peer, { SignalData } from 'simple-peer'
+
+
 import {
   AddLocalStreamPayload,
   AddTrackPayload,
@@ -27,6 +31,13 @@ import {
   STREAM_TRACK_REMOVE,
   TRACKS_METADATA,
   MEDIA_TRACK,
+  PEER_DATA_CHANNEL_NAME,
+  PEER_EVENT_ERROR,
+  PEER_EVENT_CONNECT,
+  PEER_EVENT_CLOSE,
+  PEER_EVENT_SIGNAL,
+  PEER_EVENT_TRACK,
+  PEER_EVENT_DATA,
   STREAM_LOCAL_RECORD, STREAM_LOCAL_STOP_RECORD,
 } from '../constants'
 import {createObjectURL, MediaStream, revokeObjectURL} from '../window'
@@ -117,6 +128,8 @@ interface StreamIdUserId {
 
 interface RecordLocalStreamPayload {
   recordUrl: string
+  roomID: string
+  userID: string
 }
 
 /*
@@ -287,7 +300,7 @@ function recordLocalStream(
   const mediaRecorders = Object.entries(state.localStreams)
     .map(([type, stream]) => {
       const streamRecordUrl = `${payload.recordUrl}/${type}`
-      return initializeMediaRecorder(streamRecordUrl, stream!.stream)
+      return initializeMediaRecorder(payload.roomID, payload.userID, stream!.stream)
     },
   )
 
@@ -307,19 +320,76 @@ function recordAdditionalStream(
 }
 
 function initializeMediaRecorder(
-  streamRecordUrl: string, stream: MediaStream,
+  roomID: string, userID: string, stream: MediaStream,
 ): StreamIdRecorder {
-  const ws = new SocketClient<RecordingSocket>(streamRecordUrl)
+
+  const peer = new Peer({
+    initiator: true,
+    config: {
+      iceServers,
+      enableInsertableStreams: true,
+      // legacy flags for insertable streams
+      forceEncodedVideoInsertableStreams: true,
+      forceEncodedAudioInsertableStreams: true,
+    },
+    channelName: PEER_DATA_CHANNEL_NAME,
+    // trickle: false,
+    // Allow the peer to receive video, even if it's not sending stream:
+    // https://github.com/feross/simple-peer/issues/95
+    offerConstraints: {
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true,
+    },
+    stream,
+  })
+
+
+  peer.once(PEER_EVENT_ERROR, (err: Error) => {
+    debug("peer record error", err)
+  })
+  peer.once(PEER_EVENT_CONNECT, () => {
+    debug("peer record connect")
+  })
+  peer.once(PEER_EVENT_CLOSE, () => {
+    debug("peer record CLOSE")
+  })
+  peer.once(PEER_EVENT_SIGNAL, (data) => {
+    if (data != null) {
+      fetch('/api/sessions/' + roomID + '/join/' + userID, {
+        method: 'POST',
+        body: btoa(JSON.stringify(data))
+      }).then((resp) => {
+        resp.json().then(data => {
+          try {
+            peer.signal(data)
+          } catch (e) {
+            debug(e)
+          }
+        })
+      });
+    }
+    debug("peer record signal", data)
+  })
+  peer.on(PEER_EVENT_TRACK, (track, stream) => {
+    debug("peer record track", track, stream)
+  })
+  peer.on(PEER_EVENT_DATA, (data) => {
+    debug("peer record data", data)
+  })
+
+
+
+  // const ws = new SocketClient<RecordingSocket>(streamRecordUrl)
   const mediaRecorder = new MediaRecorder(stream, recorderOptions)
   mediaRecorder.start(1000)
   mediaRecorder.ondataavailable = (event) => {
     if (event.data && event.data.size > 0) {
-      ws.emit('record', event.data)
+      // ws.emit('record', event.data)
     }
   }
   mediaRecorder.onstop = () => {
-    ws.emit('record_stop', {})
-    ws.disconnect()
+    // ws.emit('record_stop', {})
+    // ws.disconnect()
   }
   return [stream.id, mediaRecorder]
 }
