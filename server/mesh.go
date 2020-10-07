@@ -1,6 +1,7 @@
 package server
 
 import (
+	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
@@ -11,7 +12,7 @@ type ReadyMessage struct {
 	Room   string `json:"room"`
 }
 
-func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map, recordServiceURL string) http.Handler {
+func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map, recordServiceURL string, RTMPBaseURL string) http.Handler {
 	log := loggerFactory.GetLogger("mesh")
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		sub, err := wss.Subscribe(w, r)
@@ -109,8 +110,9 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map
 						Timeout: 15 * time.Second,
 					}
 					var err error
+					var resp *http.Response
 					if status {
-						_, err = client.Post(recordServiceURL+"/api/sessions/"+room, "application/json", nil)
+						resp, err = client.Post(recordServiceURL+"/api/sessions/"+room, "application/json", nil)
 					} else {
 						req, errRequest := http.NewRequest("DELETE", recordServiceURL+"/api/sessions/"+room, nil)
 						if errRequest == nil {
@@ -128,6 +130,15 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map
 							}),
 						)
 					} else {
+						streamID, err := ioutil.ReadAll(resp.Body)
+						resp.Body.Close()
+						if err == nil {
+							err = adapter.Emit(clientID, NewMessage("stream_url", room, map[string]interface{}{
+								"successful": "1",
+								"stream_url": RTMPBaseURL + "/" + string(streamID),
+							}))
+						}
+
 						err = adapter.Broadcast(
 							NewMessage("record_callback", room, map[string]interface{}{
 								"successful":   true,

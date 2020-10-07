@@ -71,4 +71,5 @@ type Config struct {
 	Prometheus       PrometheusConfig `yaml:"prometheus"`
 	JwtSecret        string           `yaml:"jwt_secret"`
 	RecordServiceURL string           `yaml:"record_serice_url"`
+	RTMPBaseURL      string           `yaml:"rtmp_base_url"`
 }

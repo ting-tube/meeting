@@ -43,6 +43,7 @@ type Mux struct {
 	version          string
 	activeRooms      *sync.Map
 	recordServiceURL string
+	RTMPServiceURL   string
 }
 
 func (mux *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -81,6 +82,7 @@ func NewMux(
 	tracks TracksManager,
 	prom PrometheusConfig,
 	recordServiceURL string,
+	RTMPServiceURL string,
 ) *Mux {
 	box := packr.NewBox("./templates")
 	templates := ParseTemplates(box)
@@ -95,6 +97,7 @@ func NewMux(
 		version:          version,
 		activeRooms:      &sync.Map{},
 		recordServiceURL: recordServiceURL,
+		RTMPServiceURL:   RTMPServiceURL,
 	}
 
 	var root string
@@ -112,6 +115,7 @@ func NewMux(
 		tracks,
 		mux.activeRooms,
 		recordServiceURL,
+		RTMPServiceURL,
 	)
 
 	manifest := buildManifest(baseURL)
@@ -155,7 +159,7 @@ func NewMux(
 	return mux
 }
 
-func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss *WSS, iceServers []ICEServer, tracks TracksManager, activeRooms *sync.Map, recordServiceURL string) http.Handler {
+func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss *WSS, iceServers []ICEServer, tracks TracksManager, activeRooms *sync.Map, recordServiceURL, RTMPServiceURL string) http.Handler {
 	log := loggerFactory.GetLogger("mux")
 	switch network.Type {
 	case NetworkTypeSFU:
@@ -163,7 +167,7 @@ func newWebSocketHandler(loggerFactory LoggerFactory, network NetworkConfig, wss
 		return NewSFUHandler(loggerFactory, wss, iceServers, network.SFU, tracks)
 	default:
 		log.Println("Using network type mesh")
-		return NewMeshHandler(loggerFactory, wss, activeRooms, recordServiceURL)
+		return NewMeshHandler(loggerFactory, wss, activeRooms, recordServiceURL, RTMPServiceURL)
 	}
 }
 
