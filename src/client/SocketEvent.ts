@@ -52,6 +52,9 @@ export interface SocketEvent {
   room_created: {
     creatorId: string
   }
+  stream_url: {
+    stream_url: string
+  }
   connect: undefined
   disconnect: undefined
   ready: Ready

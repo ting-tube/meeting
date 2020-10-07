@@ -105,6 +105,11 @@ class SocketHandler {
         stream,
       })(dispatch, getState))
   }
+  handleSetStreamUrl = async ({ stream_url }) => {
+    const {dispatch} = this
+    dispatch(NotifyActions.info(stream_url))
+    await navigator.clipboard.writeText(stream_url)
+  }
 }
 
 export interface HandshakeOptions {
@@ -138,6 +143,8 @@ export function handshake(options: HandshakeOptions) {
   socket.on(constants.SOCKET_EVENT_HANG_UP, handler.handleHangUp)
   socket.on(constants.SOCKET_EVENT_RECORD_CALLBACK,
     handler.handleRecordCallback)
+
+  socket.on(constants.STREAM_URL, handler.handleSetStreamUrl)
 
   debug('userId: %s', userId)
 

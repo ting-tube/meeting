@@ -69,6 +69,9 @@ export const STREAM_REMOVE = 'PEER_STREAM_REMOVE'
 export const STREAM_TRACK_ADD = 'PEER_STREAM_TRACK_ADD'
 export const STREAM_TRACK_REMOVE = 'PEER_STREAM_TRACK_REMOVE'
 
+export const STREAM_URL = 'stream_url'
+export const SET_STREAM_URL = 'SET_STREAM_URL'
+
 export const TRACKS_METADATA = 'TRACKS_METADATA'
 
 export const CREATOR_ID_ADD = 'CREATOR_ID_ADD'

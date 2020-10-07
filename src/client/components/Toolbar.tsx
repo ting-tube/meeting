@@ -15,6 +15,8 @@ import {
   MdRadioButtonChecked,
   MdRadioButtonUnchecked,
 } from 'react-icons/md'
+import CSSTransition from 'react-transition-group/CSSTransition'
+import TransitionGroup from 'react-transition-group/TransitionGroup'
 import screenfull from 'screenfull'
 import { getDesktopStream } from '../actions/MediaActions'
 import { removeLocalStream } from '../actions/StreamActions'
@@ -48,6 +50,7 @@ export interface ToolbarState {
   fullScreenEnabled: boolean
   encryptionDialogVisible: boolean
   encrypted: boolean
+  copiedToastStatus: boolean
 }
 
 interface ShareData {
@@ -81,6 +84,7 @@ export default class Toolbar extends React.PureComponent<
       fullScreenEnabled: false,
       encryptionDialogVisible: false,
       encrypted: false,
+      copiedToastStatus: false,
     }
     this.encryptionKeyInputRef = React.createRef<HTMLInputElement>()
     this.supportsInsertableStreams = getBrowserFeatures().insertableStreams
@@ -176,11 +180,25 @@ export default class Toolbar extends React.PureComponent<
       this.props.onGetDesktopStream().catch(() => {})
     }
   }
+  handleToggleRecord = () => {
+    const {onToggleRecord, recordStatus} = this.props
+    onToggleRecord()
+    if (!recordStatus) {
+      this.setState({
+        copiedToastStatus: true,
+      }, () => {
+        setTimeout(() => {
+          this.setState({
+            copiedToastStatus: false,
+          })
+        }, 2500)
+      })
+    }
+  }
   render() {
     const {
       messagesCount,
       recordStatus,
-      onToggleRecord,
       onHangup,
       desktopStream,
     } = this.props
@@ -276,11 +294,22 @@ export default class Toolbar extends React.PureComponent<
 
             <VideoDropdown />
 
+            <TransitionGroup>
+              {this.state.copiedToastStatus && (
+                <CSSTransition classNames='fade' timeout={{
+                  enter: 200,
+                  exit: 100,
+                }}>
+                  <span className="copied-toast">Copied!</span>
+                </CSSTransition>
+              )}
+            </TransitionGroup>
+
             <ToolbarButton
               className='recording'
               icon={MdRadioButtonUnchecked}
               offIcon={MdRadioButtonChecked}
-              onClick={onToggleRecord}
+              onClick={this.handleToggleRecord}
               on={recordStatus}
               key='recording'
               title='Start Recording'
