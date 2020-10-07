@@ -12,7 +12,7 @@ type ReadyMessage struct {
 	Room   string `json:"room"`
 }
 
-func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map, recordServiceURL string, RTMPBaseURL string) http.Handler {
+func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map, recordServiceURL string) http.Handler {
 	log := loggerFactory.GetLogger("mesh")
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		sub, err := wss.Subscribe(w, r)
@@ -130,12 +130,12 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map
 							}),
 						)
 					} else {
-						streamID, err := ioutil.ReadAll(resp.Body)
+						streamURL, err := ioutil.ReadAll(resp.Body)
 						resp.Body.Close()
 						if err == nil {
 							err = adapter.Emit(clientID, NewMessage("stream_url", room, map[string]interface{}{
 								"successful": "1",
-								"stream_url": RTMPBaseURL + "/" + string(streamID),
+								"stream_url": string(streamURL),
 							}))
 						}
 

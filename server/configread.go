@@ -90,7 +90,6 @@ func ReadConfigFromEnv(prefix string, c *Config) {
 	setEnvString(&c.TLS.Key, prefix+"TLS_KEY")
 	setEnvString(&c.JwtSecret, prefix+"JWT_SECRET")
 	setEnvString(&c.RecordServiceURL, prefix+"RECORD_SERVICE_URL")
-	setEnvString(&c.RTMPBaseURL, prefix+"RTMP_SERVICE_URL")
 
 	setEnvStoreType(&c.Store.Type, prefix+"STORE_TYPE")
 	setEnvString(&c.Store.Redis.Host, prefix+"STORE_REDIS_HOST")
