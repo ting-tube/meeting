@@ -2,14 +2,13 @@ import _debug from 'debug'
 import forEach from 'lodash/forEach'
 import keyBy from 'lodash/keyBy'
 import omit from 'lodash/omit'
-import {recorderOptions} from '../../config/recorderConfig'
-import {MetadataPayload, RecordingSocket, TrackMetadata} from '../SocketEvent'
+import {MetadataPayload, TrackMetadata} from '../SocketEvent'
 import {HangUpAction} from '../actions/CallActions'
 import {MediaTrackAction, MediaStreamAction, MediaTrackPayload} from '../actions/MediaActions'
 import {NicknameRemoveAction, NicknameRemovePayload} from '../actions/NicknameActions'
 import {RemovePeerAction} from '../actions/PeerActions'
 import { iceServers } from '../window'
-import Peer, { SignalData } from 'simple-peer'
+import Peer from 'simple-peer'
 
 
 import {
@@ -41,7 +40,6 @@ import {
   STREAM_LOCAL_RECORD, STREAM_LOCAL_STOP_RECORD,
 } from '../constants'
 import {createObjectURL, MediaStream, revokeObjectURL} from '../window'
-import {SocketClient} from '../ws'
 
 const debug = _debug('peercalls:streams')
 const defaultState = Object.freeze({
@@ -97,12 +95,12 @@ export interface StreamsState {
   metadataByPeerIdMid: Record<string, TrackMetadata>
   trackIdToPeerIdMid: Record<string, string>
   tracksByPeerIdMid: Record<string, TrackInfo>
-  localRecorders: [string, MediaRecorder][]
+  localRecorders: [string][]
   streamsRecordUrl: string
   isRecording: boolean
 }
 
-export type StreamIdRecorder = [string, MediaRecorder]
+export type StreamIdRecorder = [string]
 
 interface TrackInfo {
   track: MediaStreamTrack
@@ -131,6 +129,8 @@ interface RecordLocalStreamPayload {
   roomID: string
   userID: string
 }
+
+let peerInstance: Peer.Instance
 
 /*
  * getUserId returns the real user id from the metadata, if available, or
@@ -299,8 +299,11 @@ function recordLocalStream(
   debug('streams recordLocalTracks: %o', payload)
   const mediaRecorders = Object.entries(state.localStreams)
     .map(([type, stream]) => {
-      const streamRecordUrl = `${payload.recordUrl}/${type}`
-      return initializeMediaRecorder(payload.roomID, payload.userID, stream!.stream)
+      return initializeMediaRecorder(
+        payload.roomID,
+        payload.userID,
+        stream!.stream,
+      )
     },
   )
 
@@ -319,10 +322,7 @@ function recordAdditionalStream(
   return initializeMediaRecorder(streamRecordUrl, localStream.stream)
 }
 
-function initializeMediaRecorder(
-  roomID: string, userID: string, stream: MediaStream,
-): StreamIdRecorder {
-
+function initializePeer(roomID: string, userID: string, stream: MediaStream) {
   const peer = new Peer({
     initiator: true,
     config: {
@@ -343,21 +343,20 @@ function initializeMediaRecorder(
     stream,
   })
 
-
   peer.once(PEER_EVENT_ERROR, (err: Error) => {
-    debug("peer record error", err)
+    debug('peer record error', err)
   })
   peer.once(PEER_EVENT_CONNECT, () => {
-    debug("peer record connect")
+    debug('peer record connect')
   })
   peer.once(PEER_EVENT_CLOSE, () => {
-    debug("peer record CLOSE")
+    debug('peer record CLOSE')
   })
   peer.once(PEER_EVENT_SIGNAL, (data) => {
     if (data != null) {
       fetch('/api/sessions/' + roomID + '/join/' + userID, {
         method: 'POST',
-        body: btoa(JSON.stringify(data))
+        body: btoa(JSON.stringify(data)),
       }).then((resp) => {
         resp.json().then(data => {
           try {
@@ -366,41 +365,34 @@ function initializeMediaRecorder(
             debug(e)
           }
         })
-      });
+      })
     }
-    debug("peer record signal", data)
+    debug('peer record signal', data)
   })
   peer.on(PEER_EVENT_TRACK, (track, stream) => {
-    debug("peer record track", track, stream)
+    debug('peer record track', track, stream)
   })
   peer.on(PEER_EVENT_DATA, (data) => {
-    debug("peer record data", data)
+    debug('peer record data', data)
   })
 
+  return peer
+}
 
+function initializeMediaRecorder(
+  roomID: string, userID: string, stream: MediaStream,
+): StreamIdRecorder {
 
-  // const ws = new SocketClient<RecordingSocket>(streamRecordUrl)
-  const mediaRecorder = new MediaRecorder(stream, recorderOptions)
-  mediaRecorder.start(1000)
-  mediaRecorder.ondataavailable = (event) => {
-    if (event.data && event.data.size > 0) {
-      // ws.emit('record', event.data)
-    }
-  }
-  mediaRecorder.onstop = () => {
-    // ws.emit('record_stop', {})
-    // ws.disconnect()
-  }
-  return [stream.id, mediaRecorder]
+  peerInstance = initializePeer(roomID, userID, stream)
+
+  return [stream.id]
 }
 
 function stopRecordLocalStream(
   state: StreamsState,
 ): StreamsState {
-  const {localRecorders} = state
-  localRecorders.forEach((localRecorder) => {
-    localRecorder[1].stop()
-  })
+
+  peerInstance?.destroy()
 
   return {
     ...state,
@@ -409,14 +401,14 @@ function stopRecordLocalStream(
 }
 
 function stopRecordAdditionalStream(
-  localRecorders: [string, MediaRecorder][], localStream: LocalStream,
+  localRecorders: [string][], localStream: LocalStream,
 ): StreamIdRecorder[] {
   const newLocalRecorders: StreamIdRecorder[] = []
 
   for (let i = 0; i < localRecorders.length; i += 1) {
     const currentRecorderWithStreamId = localRecorders[i]
     if (localStream.streamId === currentRecorderWithStreamId[0]) {
-      currentRecorderWithStreamId[1].stop()
+      peerInstance?.destroy()
     } else {
       newLocalRecorders.push(currentRecorderWithStreamId)
     }
