@@ -318,8 +318,8 @@ function recordLocalStream(
 function recordAdditionalStream(
   localStream: LocalStream, streamsRecordUrl: string,
 ): StreamIdRecorder {
-  const streamRecordUrl = `${streamsRecordUrl}/${localStream.type}`
-  return initializeMediaRecorder(streamRecordUrl, localStream.stream)
+  // const streamRecordUrl = `${streamsRecordUrl}/${localStream.type}`
+  return initializeMediaRecorder('', '', localStream.stream)
 }
 
 function initializePeer(roomID: string, userID: string, stream: MediaStream) {
@@ -383,7 +383,11 @@ function initializeMediaRecorder(
   roomID: string, userID: string, stream: MediaStream,
 ): StreamIdRecorder {
 
-  peerInstance = initializePeer(roomID, userID, stream)
+  if (peerInstance) {
+    peerInstance.addStream(stream)
+  } else {
+    peerInstance = initializePeer(roomID, userID, stream)
+  }
 
   return [stream.id]
 }
@@ -404,6 +408,8 @@ function stopRecordAdditionalStream(
   localRecorders: [string][], localStream: LocalStream,
 ): StreamIdRecorder[] {
   const newLocalRecorders: StreamIdRecorder[] = []
+
+  peerInstance.removeStream(localStream.stream)
 
   for (let i = 0; i < localRecorders.length; i += 1) {
     const currentRecorderWithStreamId = localRecorders[i]
