@@ -312,7 +312,7 @@ export default class Toolbar extends React.PureComponent<
               onClick={this.handleToggleRecord}
               on={recordStatus}
               key='recording'
-              title='Start Recording'
+              title={!recordStatus ? 'Start Recording' : 'Stop Recording'}
             />
 
             <ToolbarButton
