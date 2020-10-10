@@ -222,4 +222,5 @@ func (mux *Mux) routeJoinRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	io.Copy(w, resp.Body)
+	resp.Body.Close()
 }

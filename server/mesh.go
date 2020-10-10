@@ -130,13 +130,15 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map
 							}),
 						)
 					} else {
-						streamURL, err := ioutil.ReadAll(resp.Body)
-						resp.Body.Close()
-						if err == nil {
-							err = adapter.Emit(clientID, NewMessage("stream_url", room, map[string]interface{}{
-								"successful": "1",
-								"stream_url": string(streamURL),
-							}))
+						if resp != nil {
+							streamURL, err := ioutil.ReadAll(resp.Body)
+							resp.Body.Close()
+							if err == nil {
+								err = adapter.Emit(clientID, NewMessage("stream_url", room, map[string]interface{}{
+									"successful": "1",
+									"stream_url": string(streamURL),
+								}))
+							}
 						}
 
 						err = adapter.Broadcast(

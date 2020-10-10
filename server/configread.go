@@ -35,7 +35,7 @@ func InitConfig(c *Config) {
 	c.BindPort = 3000
 	c.Network.Type = NetworkTypeMesh
 	c.Store.Type = StoreTypeMemory
-	c.RecordServiceURL = "http://localhost:8080"
+	c.RecordServiceURL = "http://localhost:8081"
 	// Just a random string
 	// Highly recommended set this in config
 	c.JwtSecret = `jfoObcXCpJLLeYfYimqF

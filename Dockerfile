@@ -25,7 +25,8 @@ RUN packr build -ldflags "-X main.gitDescribe=$(git describe --always --tags)" -
 FROM debian:buster-slim
 WORKDIR /app
 COPY --from=1 /app/peer-calls .
+COPY ./config/viktor/config.yaml ./
 USER nobody
 EXPOSE 3000
 STOPSIGNAL SIGINT
-ENTRYPOINT ["./peer-calls"]
+ENTRYPOINT ["./peer-calls", "-c", "config.yaml"]
