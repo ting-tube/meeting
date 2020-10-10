@@ -70,5 +70,5 @@ type Config struct {
 	Network          NetworkConfig    `yaml:"network"`
 	Prometheus       PrometheusConfig `yaml:"prometheus"`
 	JwtSecret        string           `yaml:"jwt_secret"`
-	RecordServiceURL string           `yaml:"record_serice_url"`
+	RecordServiceURL string           `yaml:"record_service_url"`
 }
