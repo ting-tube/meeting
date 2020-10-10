@@ -4,7 +4,7 @@ const webpack = require('webpack')
 
 module.exports = {
   ...common,
-  devtool: 'inline-source-map',
+  devtool: 'source-map',
   plugins: [
     new webpack.SourceMapDevToolPlugin({
       filename: null,

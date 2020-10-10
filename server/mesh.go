@@ -1,8 +1,10 @@
 package server
 
 import (
+	"io/ioutil"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type ReadyMessage struct {
@@ -52,7 +54,6 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map
 						"peerIds":      clientsToPeerIDs(clients),
 						"nicknames":    clients,
 						"recordStatus": getRoomRecordStatus(room, activeRooms),
-						"recordUrl":    recordServiceURL,
 					}),
 				)
 				if len(clients) == 0 {
@@ -105,14 +106,50 @@ func NewMeshHandler(loggerFactory LoggerFactory, wss *WSS, activeRooms *sync.Map
 						}),
 					)
 				} else {
-					err = adapter.Broadcast(
-						NewMessage("record_callback", room, map[string]interface{}{
-							"successful":   true,
-							"recordStatus": status,
-							"url":          recordServiceURL,
-						}),
-					)
-					updateRoomRecordStatus(room, activeRooms, status)
+					client := &http.Client{
+						Timeout: 15 * time.Second,
+					}
+					var err error
+					var resp *http.Response
+					if status {
+						resp, err = client.Post(recordServiceURL+"/api/sessions/"+room, "application/json", nil)
+					} else {
+						req, errRequest := http.NewRequest("DELETE", recordServiceURL+"/api/sessions/"+room, nil)
+						if errRequest == nil {
+							_, err = client.Do(req)
+						} else {
+							err = errRequest
+						}
+					}
+
+					if err != nil {
+						log.Printf("Error create record session %v", err)
+						err = adapter.Broadcast(
+							NewMessage("record_callback", room, map[string]interface{}{
+								"successful": false,
+							}),
+						)
+					} else {
+						if resp != nil {
+							streamURL, err := ioutil.ReadAll(resp.Body)
+							resp.Body.Close()
+							if err == nil {
+								err = adapter.Emit(clientID, NewMessage("stream_url", room, map[string]interface{}{
+									"successful": "1",
+									"stream_url": string(streamURL),
+								}))
+							}
+						}
+
+						err = adapter.Broadcast(
+							NewMessage("record_callback", room, map[string]interface{}{
+								"successful":   true,
+								"recordStatus": status,
+							}),
+						)
+						updateRoomRecordStatus(room, activeRooms, status)
+					}
+
 				}
 			}
 

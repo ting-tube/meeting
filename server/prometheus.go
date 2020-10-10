@@ -15,6 +15,11 @@ var prometheusCallJoinTotal = promauto.NewCounter(prometheus.CounterOpts{
 	Help: "Total number of new call requests",
 })
 
+var prometheusCallJoinRecord = promauto.NewCounter(prometheus.CounterOpts{
+	Name: "pageviews_call_join_record_total",
+	Help: "Total number of join to record",
+})
+
 var prometheusCallViewsTotal = promauto.NewCounter(prometheus.CounterOpts{
 	Name: "pageviews_call_total",
 	Help: "Total number of homepage views",
