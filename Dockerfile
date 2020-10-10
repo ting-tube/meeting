@@ -27,6 +27,6 @@ WORKDIR /app
 COPY --from=1 /app/peer-calls .
 COPY ./config/viktor/config.yaml ./
 USER nobody
-EXPOSE 3000
+EXPOSE 3001
 STOPSIGNAL SIGINT
 ENTRYPOINT ["./peer-calls", "-c", "config.yaml"]
