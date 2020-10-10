@@ -130,7 +130,11 @@ interface RecordLocalStreamPayload {
   userID: string
 }
 
-let peerInstance: Peer.Instance
+interface PeerInstanceInterface extends Peer.Instance {
+  streams?: [MediaStream]
+}
+
+let peerInstance: PeerInstanceInterface
 
 /*
  * getUserId returns the real user id from the metadata, if available, or
@@ -384,7 +388,11 @@ function initializeMediaRecorder(
 ): StreamIdRecorder {
 
   if (peerInstance) {
-    peerInstance.addStream(stream)
+    const isStreamExists = peerInstance.streams!.find(
+      (streamData: MediaStream) => streamData.id === stream.id)
+    if (!isStreamExists) {
+      peerInstance.addStream(stream)
+    }
   } else {
     peerInstance = initializePeer(roomID, userID, stream)
   }
@@ -396,7 +404,7 @@ function stopRecordLocalStream(
   state: StreamsState,
 ): StreamsState {
 
-  peerInstance?.destroy()
+  // peerInstance?.destroy()
 
   return {
     ...state,
@@ -414,7 +422,7 @@ function stopRecordAdditionalStream(
   for (let i = 0; i < localRecorders.length; i += 1) {
     const currentRecorderWithStreamId = localRecorders[i]
     if (localStream.streamId === currentRecorderWithStreamId[0]) {
-      peerInstance?.destroy()
+      // peerInstance?.destroy()
     } else {
       newLocalRecorders.push(currentRecorderWithStreamId)
     }
