@@ -387,7 +387,7 @@ function initializeMediaRecorder(
   roomID: string, userID: string, stream: MediaStream,
 ): StreamIdRecorder {
 
-  if (peerInstance) {
+  if (!roomID && !userID) {
     const isStreamExists = peerInstance.streams!.find(
       (streamData: MediaStream) => streamData.id === stream.id)
     if (!isStreamExists) {
@@ -404,7 +404,7 @@ function stopRecordLocalStream(
   state: StreamsState,
 ): StreamsState {
 
-  // peerInstance?.destroy()
+  peerInstance?.destroy()
 
   return {
     ...state,
