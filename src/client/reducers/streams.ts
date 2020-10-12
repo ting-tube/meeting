@@ -7,7 +7,7 @@ import {HangUpAction} from '../actions/CallActions'
 import {MediaTrackAction, MediaStreamAction, MediaTrackPayload} from '../actions/MediaActions'
 import {NicknameRemoveAction, NicknameRemovePayload} from '../actions/NicknameActions'
 import {RemovePeerAction} from '../actions/PeerActions'
-import { iceServers } from '../window'
+import { iceServers, userId } from '../window'
 import Peer from 'simple-peer'
 
 
@@ -135,6 +135,7 @@ interface PeerInstanceInterface extends Peer.Instance {
 }
 
 let peerInstance: PeerInstanceInterface
+let isRecording = false
 
 /*
  * getUserId returns the real user id from the metadata, if available, or
@@ -311,6 +312,8 @@ function recordLocalStream(
     },
   )
 
+  isRecording = true
+
   return {
       ...state,
       localRecorders: mediaRecorders,
@@ -355,6 +358,9 @@ function initializePeer(roomID: string, userID: string, stream: MediaStream) {
   })
   peer.once(PEER_EVENT_CLOSE, () => {
     debug('peer record CLOSE')
+    if (isRecording) {
+      peerInstance = initializePeer(roomID, userId, stream)
+    }
   })
   peer.once(PEER_EVENT_SIGNAL, (data) => {
     if (data != null) {
@@ -405,6 +411,7 @@ function stopRecordLocalStream(
 ): StreamsState {
 
   peerInstance?.destroy()
+  isRecording = false
 
   return {
     ...state,
@@ -692,6 +699,7 @@ export default function streams(
     case PEER_REMOVE:
       return removePeer(state, action.payload)
     case HANG_UP:
+      peerInstance?.destroy()
       forEach(state.localStreams, ls => stopStream(ls!))
       forEach(state.streamsByUserId, us => stopAllTracks(us.streams))
       return defaultState
