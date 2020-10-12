@@ -7,7 +7,7 @@ import {HangUpAction} from '../actions/CallActions'
 import {MediaTrackAction, MediaStreamAction, MediaTrackPayload} from '../actions/MediaActions'
 import {NicknameRemoveAction, NicknameRemovePayload} from '../actions/NicknameActions'
 import {RemovePeerAction} from '../actions/PeerActions'
-import { iceServers, userId } from '../window'
+import { iceServers } from '../window'
 import Peer from 'simple-peer'
 
 
@@ -359,7 +359,7 @@ function initializePeer(roomID: string, userID: string, stream: MediaStream) {
   peer.once(PEER_EVENT_CLOSE, () => {
     debug('peer record CLOSE')
     if (isRecording) {
-      peerInstance = initializePeer(roomID, userId, stream)
+      peerInstance = initializePeer(roomID, userID, stream)
     }
   })
   peer.once(PEER_EVENT_SIGNAL, (data) => {
