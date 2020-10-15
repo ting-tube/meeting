@@ -9,19 +9,11 @@ ice_servers:
         username: example
         secret: "wallit-static-password"
   - urls:
-<<<<<<< HEAD
       - 'turn:demomee.ting.tube:5349'
     auth_type: secret
     auth_secret:
         username: "example"
         secret: "wallit-static-password"
-=======
-      - 'turn:irturn.mydolphin.org:3478'
-    auth_type: secret
-    auth_secret:
-        username: "vahid2"
-        secret: "empty-pass"
->>>>>>> 245486c3c901f56a1fa0e36dd08d6150ad3ba413
 #- urls:
 #  - 'turn:coturn.mydomain.com'
 #  auth_type: secret
