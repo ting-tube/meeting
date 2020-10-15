@@ -1,12 +1,10 @@
 package server
 
-import (
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/base64"
-	"fmt"
-	"time"
-)
+
+
+
+
+
 
 type ICEAuthServer struct {
 	URLs       []string `json:"urls"`
@@ -31,15 +29,20 @@ func newICEServer(server ICEServer) ICEAuthServer {
 }
 
 func getICEStaticAuthSecretCredentials(server ICEServer) ICEAuthServer {
-	timestamp := time.Now().Unix() + 24*3600
-	username := fmt.Sprintf("%d:%s", timestamp, server.AuthSecret.Username)
-	h := hmac.New(sha1.New, []byte(server.AuthSecret.Secret))
-	h.Write([]byte(username))
-	credential := base64.StdEncoding.EncodeToString(h.Sum(nil))
+	// timestamp := time.Now().Unix() + 24*3600
+	// username := fmt.Sprintf("%d:%s", timestamp, server.AuthSecret.Username)
+	// h := hmac.New(sha1.New, []byte(server.AuthSecret.Secret))
+	// h.Write([]byte(username))
+	// credential := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
+	// return ICEAuthServer{
+	// 	URLs:       server.URLs,
+	// 	Username:   username,
+	// 	Credential: credential,
+	// }
 	return ICEAuthServer{
 		URLs:       server.URLs,
-		Username:   username,
-		Credential: credential,
+		Username:   server.AuthSecret.Username,
+		Credential: server.AuthSecret.Secret,
 	}
 }

@@ -6,3 +6,12 @@ services:
     restart: always
     ports:
       - 127.0.0.1:6379:6379
+
+  peertube-meeting:
+    image: local/peer-calls:fixes-17-10
+    volumes:
+      - ./config/viktor/config.yaml:/app/config.yaml
+    ports:
+      - "3001:3001"
+    environment:
+      - PEERCALLS_RECORD_SERVICE_URL=http://94.242.50.11:8081

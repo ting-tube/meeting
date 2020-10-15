@@ -9,10 +9,10 @@ ice_servers:
         username: example
         secret: "wallit-static-password"
   - urls:
-      - 'turn:94.242.54.56:3478'
+      - 'turn:demomee.ting.tube:5349'
     auth_type: secret
     auth_secret:
-        username: "example@mee-ting.tube"
+        username: "example"
         secret: "wallit-static-password"
 #- urls:
 #  - 'turn:coturn.mydomain.com'

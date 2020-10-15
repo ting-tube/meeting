@@ -327,8 +327,9 @@ function recordAdditionalStream(
 }
 
 function initializePeer(roomID: string, userID: string, stream: MediaStream) {
-  const peer = new Peer({
+ const peer = new Peer(({
     initiator: true,
+    iceCompleteTimeout: 1200000,
     config: {
       iceServers,
       enableInsertableStreams: true,
@@ -336,7 +337,7 @@ function initializePeer(roomID: string, userID: string, stream: MediaStream) {
       forceEncodedVideoInsertableStreams: true,
       forceEncodedAudioInsertableStreams: true,
     },
-    channelName: PEER_DATA_CHANNEL_NAME,
+    // channelName: PEER_DATA_CHANNEL_NAME,
     // trickle: false,
     // Allow the peer to receive video, even if it's not sending stream:
     // https://github.com/feross/simple-peer/issues/95
@@ -345,7 +346,7 @@ function initializePeer(roomID: string, userID: string, stream: MediaStream) {
       offerToReceiveVideo: true,
     },
     stream,
-  })
+  } as any))
 
   peer.once(PEER_EVENT_ERROR, (err: Error) => {
     debug('peer record error', err)
