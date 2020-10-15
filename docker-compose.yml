@@ -6,7 +6,6 @@ services:
     restart: always
     ports:
       - 127.0.0.1:6379:6379
-
   peertube-meeting:
     image: local/peer-calls:fixes-17-10
     volumes:

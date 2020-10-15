@@ -1,11 +1,5 @@
 package server
 
-
-
-
-
-
-
 type ICEAuthServer struct {
 	URLs       []string `json:"urls"`
 	Username   string   `json:"username,omitempty"`
