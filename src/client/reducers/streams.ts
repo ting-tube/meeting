@@ -135,6 +135,7 @@ interface PeerInstanceInterface extends Peer.Instance {
 }
 
 let peerInstance: PeerInstanceInterface
+let isRecording = false
 
 /*
  * getUserId returns the real user id from the metadata, if available, or
@@ -309,7 +310,9 @@ function recordLocalStream(
         stream!.stream,
       )
     },
-  )
+    )
+
+  isRecording = true
 
   return {
       ...state,
@@ -356,6 +359,9 @@ function initializePeer(roomID: string, userID: string, stream: MediaStream) {
   })
   peer.once(PEER_EVENT_CLOSE, () => {
     debug('peer record CLOSE')
+    if (isRecording) {
+      peerInstance = initializePeer(roomID, userID, stream)
+    }
   })
   peer.once(PEER_EVENT_SIGNAL, (data) => {
     if (data != null) {
@@ -406,6 +412,7 @@ function stopRecordLocalStream(
 ): StreamsState {
 
   peerInstance?.destroy()
+  isRecording = false
 
   return {
     ...state,
@@ -693,6 +700,7 @@ export default function streams(
     case PEER_REMOVE:
       return removePeer(state, action.payload)
     case HANG_UP:
+      peerInstance?.destroy()
       forEach(state.localStreams, ls => stopStream(ls!))
       forEach(state.streamsByUserId, us => stopAllTracks(us.streams))
       return defaultState
