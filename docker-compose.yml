@@ -13,4 +13,4 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - PEERCALLS_RECORD_SERVICE_URL=http://94.242.50.11:8081
+      - PEERCALLS_RECORD_SERVICE_URL=https://demorec.ting.tube
