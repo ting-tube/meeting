@@ -23,6 +23,7 @@ COPY main.go .
 RUN packr build -ldflags "-X main.gitDescribe=$(git describe --always --tags)" -o peer-calls main.go
 
 FROM debian:buster-slim
+RUN apt-get update && apt-get install -yy ca-certificates
 WORKDIR /app
 COPY --from=1 /app/peer-calls .
 COPY ./config/viktor/config.yaml ./
