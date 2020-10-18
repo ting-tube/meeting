@@ -2,12 +2,12 @@ base_url: ''
 bind_host: '0.0.0.0'
 bind_port: 3001
 ice_servers:
-#  - urls:
-#      - 'stun:77.73.69.56:3478'
-#    auth_type: secret
-#    auth_secret:
-#        username: example
-#        secret: "wallit-static-password"
+  - urls:
+      - 'stun:77.73.69.56:3478'
+    auth_type: secret
+    auth_secret:
+        username: example
+        secret: "wallit-static-password"
   - urls:
       - 'turn:demomee.ting.tube:5349'
     auth_type: secret
