@@ -2,11 +2,11 @@ import _debug from 'debug'
 import forEach from 'lodash/forEach'
 import keyBy from 'lodash/keyBy'
 import omit from 'lodash/omit'
-import {MetadataPayload, TrackMetadata} from '../SocketEvent'
-import {HangUpAction} from '../actions/CallActions'
-import {MediaTrackAction, MediaStreamAction, MediaTrackPayload} from '../actions/MediaActions'
-import {NicknameRemoveAction, NicknameRemovePayload} from '../actions/NicknameActions'
-import {RemovePeerAction} from '../actions/PeerActions'
+import { MetadataPayload, TrackMetadata } from '../SocketEvent'
+import { HangUpAction } from '../actions/CallActions'
+import { MediaTrackAction, MediaStreamAction, MediaTrackPayload } from '../actions/MediaActions'
+import { NicknameRemoveAction, NicknameRemovePayload } from '../actions/NicknameActions'
+import { RemovePeerAction } from '../actions/PeerActions'
 import { iceServers } from '../window'
 import Peer from 'simple-peer'
 
@@ -39,7 +39,7 @@ import {
   PEER_EVENT_DATA,
   STREAM_LOCAL_RECORD, STREAM_LOCAL_STOP_RECORD,
 } from '../constants'
-import {createObjectURL, MediaStream, revokeObjectURL} from '../window'
+import { createObjectURL, MediaStream, revokeObjectURL } from '../window'
 
 const debug = _debug('peercalls:streams')
 const defaultState = Object.freeze({
@@ -149,7 +149,7 @@ function getUserId(
   state: StreamsState,
   payload: MidWithUserId,
 ): StreamIdUserId {
-  const {mid} = payload
+  const { mid } = payload
   const peerIdMid = getPeerIdMid(payload.userId, mid)
   const metadata = state.metadataByPeerIdMid[peerIdMid]
 
@@ -173,8 +173,8 @@ function getUserId(
 function addLocalStream(
   state: StreamsState, payload: AddLocalStreamPayload,
 ): StreamsState {
-  const {localRecorders, streamsRecordUrl} = state
-  const {stream} = payload
+  const { localRecorders, streamsRecordUrl } = state
+  const { stream } = payload
   debug('streams addLocalStream')
   const streamWithURL: LocalStream = {
     stream: payload.stream,
@@ -208,7 +208,7 @@ function removeLocalStream(
   state: StreamsState, payload: RemoveLocalStreamPayload,
 ): StreamsState {
   let newLocalRecorders: StreamIdRecorder[] = []
-  const {localStreams, localRecorders} = state
+  const { localStreams, localRecorders } = state
   const existing = localStreams[payload.streamType]
 
   if (!existing) {
@@ -237,12 +237,12 @@ function removeTrack(
     debug('streams removeTrack trackInfo not found', peerIdMid)
     return state
   }
-  const {association} = t
+  const { association } = t
   if (!association) {
     debug('streams removeTrack track not associated')
     return state
   }
-  const {userId, streamId} = association
+  const { userId, streamId } = association
   debug('streams removeTrack userId: %s, streamId: %s', userId, streamId)
 
   const userStreams = state.streamsByUserId[userId]
@@ -315,11 +315,11 @@ function recordLocalStream(
   isRecording = true
 
   return {
-      ...state,
-      localRecorders: mediaRecorders,
-      streamsRecordUrl: payload.recordUrl,
-      isRecording: !state.isRecording,
-    }
+    ...state,
+    localRecorders: mediaRecorders,
+    streamsRecordUrl: payload.recordUrl,
+    isRecording: !state.isRecording,
+  }
 }
 
 function recordAdditionalStream(
@@ -330,7 +330,7 @@ function recordAdditionalStream(
 }
 
 function initializePeer(roomID: string, userID: string, stream: MediaStream) {
- const peer = new Peer(({
+  const peer = new Peer(({
     initiator: true,
     iceCompleteTimeout: 1200000,
     config: {
@@ -360,7 +360,7 @@ function initializePeer(roomID: string, userID: string, stream: MediaStream) {
   peer.once(PEER_EVENT_CLOSE, () => {
     debug('peer record CLOSE')
     if (isRecording) {
-      peerInstance = initializePeer(roomID, userID, stream)
+      // peerInstance = initializePeer(roomID, userID, stream)
     }
   })
   peer.once(PEER_EVENT_SIGNAL, (data) => {
@@ -444,8 +444,8 @@ function addTrack(
 ): StreamsState {
   debug('streams addTrack: %o', payload)
   const peerIdMid = getPeerIdMid(payload.userId, payload.mid)
-  const {userId, streamId} = getUserId(state, payload)
-  const {track} = payload
+  const { userId, streamId } = getUserId(state, payload)
+  const { track } = payload
 
   const userStreams = state.streamsByUserId[userId] || {
     streams: [],
@@ -501,7 +501,7 @@ export function unassociateUserTracks(
   payload: NicknameRemovePayload,
 ): StreamsState {
   debug('streams unassociateUserTracks')
-  const {userId} = payload
+  const { userId } = payload
 
   const userStreams = state.streamsByUserId[userId]
   if (!userStreams) {
@@ -574,7 +574,7 @@ function setMetadata(
   }
 
   payload.metadata.forEach(m => {
-    const {streamId, mid, userId} = m
+    const { streamId, mid, userId } = m
     const peerIdMid = getPeerIdMid(payload.userId, mid)
     const t = state.tracksByPeerIdMid[peerIdMid]
 
@@ -636,7 +636,7 @@ function removePeer(
 
   return {
     ...newState,
-    trackIdToPeerIdMid: {...trackIdToPeerIdMid},
+    trackIdToPeerIdMid: { ...trackIdToPeerIdMid },
     tracksByPeerIdMid,
   }
 }
@@ -647,7 +647,7 @@ function setLocalStreamMirror(
   state: StreamsState,
   payload: MediaTrackPayload,
 ): StreamsState {
-  const {track, type} = payload
+  const { track, type } = payload
   const existingStream = state.localStreams[type]
 
   if (
