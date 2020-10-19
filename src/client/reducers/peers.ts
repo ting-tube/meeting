@@ -67,7 +67,7 @@ function handleLocalMediaStream(
         'Add track to peer, id: %s, kind: %s, label: %s',
         track.id, track.kind, track.label,
       )
-      peer.addTrack(track, stream)
+      // peer.addTrack(track, stream)
       const sender = peer.addTrack(track, stream)
       insertableStreamsCodec.encrypt(sender)
     })
